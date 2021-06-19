@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+
+dbcreds.py
+.vscode/
+
 # C extensions
 *.so
 
