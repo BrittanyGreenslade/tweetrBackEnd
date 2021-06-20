@@ -1,50 +1,51 @@
 from flask import Flask, request, Response
 import dbhelpers
 import json
-import traceback
 import sys
-
+import users
 app = Flask(__name__)
 
 
-# @app.get("/api/users")
-# def get_users():
+@app.get("/api/users")
+def get_users():
+    return users.get_users(request)
+    # print(user_json)
 
-# @app.post("/api/users")
-# def new_user():
+
+@app.post("/api/users")
+def new_user():
+    return users.create_user(request)
 # @app.patch("/api/users")
-# def update_user():
 # @app.delete("/api/users")
-# def delete_user():
+
 # @app.post("/api/login")
-# def user_login():
 # @app.delete("/api/login")
-# def user_logout():
+
+
 # @app.get("/api/follows")
-# def get_follows():
 # @app.post("/api/follows")
-# def follow_user():
 # @app.delete("/api/follows")
-# #
+
 # @app.get("/api/followers")
-# #
+
 # @app.get("/api/tweets")
 # @app.post("/api/tweets")
 # @app.patch("/api/tweets")
 # @app.delete("/api/tweets")
-# #
+
 # @app.get("/api/tweet-likes")
-# @app.post("/api/tweets")
-# @app.delete("/api/tweets")
-# #
+# @app.post("/api/tweet-likes")
+# @app.delete("/api/tweet-likes")
+
 # @app.get("/api/comments")
 # @app.post("/api/comments")
 # @app.patch("/api/comments")
 # @app.delete("/api/comments")
-# #
+
 # @app.get("/api/comment-likes")
 # @app.post("/api/comment-likes")
 # @app.delete("/api/comment-likes")
+
 if(len(sys.argv) > 1):
     mode = sys.argv[1]
 else:

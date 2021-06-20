@@ -1,20 +1,26 @@
 # Woah so DRY! Look at this, helper functions that can help you run DB queries
 import dbconnect
 import traceback
-
+import sys
+from flask import Response
 
 # The same comments apply to all the helper functions in here!
+
+
 def run_select_statement(sql, params):
     # Do the normal open and variable setup
     conn = dbconnect.get_db_connection()
     cursor = dbconnect.get_db_cursor(conn)
     result = None
-
     # Try to run the command based on the SQL and params passed in
     try:
         cursor.execute(sql, params)
         result = cursor.fetchall()
     # TODO Do a better job of catching more specific errors! Might need to find a way to return error-specific results
+
+    # except:
+    #     do exceptions for db here
+    # https://mariadb-corporation.github.io/mariadb-connector-python/module.html#exceptions
     except:
         traceback.print_exc()
         print("DO BETTER ERROR CATCHING")
