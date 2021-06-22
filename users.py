@@ -1,3 +1,4 @@
+import re
 from flask import Flask, request, Response
 from werkzeug.wrappers import response
 import dbhelpers
@@ -40,35 +41,110 @@ def get_users(request):
 
 def create_user(request):
     try:
+        # how to do errors for email and username being empty without doing select statement first?
+        #or do i do that in the create user fn
         email = request.json['email']
         username = request.json['username']
         password = request.json['password']
         bio = request.json['bio']
+        # limit birthdate input format
         birthdate = request.json['birthdate']
-        # imageUrl = request.json['imageUrl']
-        # created_user_id = int(
-        created_user_id = dbhelpers.run_insert_statement(
-            "INSERT INTO users(email, username, password, bio, birthdate) VALUES (?, ?, ?, ?, ?)", [email, username, password, bio, birthdate])
-
-        created_user_id = int(created_user_id)
-        # do a login here too
-        user = dbhelpers.run_select_statement(
-            "SELECT id, email, username, birthdate FROM users WHERE id = ?", [created_user_id])
-        new_user_dictionary = {
-            "userId": user[0][0], "email": user[0][1], "username": user[0][2], "birthdate": user[0][3]}
-        new_user_json = json.dumps(new_user_dictionary, default=str)
-        # created_user = dbhelpers.run_select_statement(
-        #     "SELECT u.id, u.email, u.username, u.bio, u.birthdate, us.login_token FROM users u INNER JOIN user_session us ON us.user_id = u.id WHERE u.id = ?", [created_user_id])
-
-        return Response(new_user_json, mimetype='application/json', status=200)
-        # limit birthdate input
-
-        # username = request.json['username']
-        # password = request.json['password']
-        # bio = request.json['bio']
-        # birthdate = request.json['birthdate']
-        # imageUrl = request.json['imageUrl']
+        image_url = request.json.get('imageUrl')
     except:
         traceback.print_exc()
-        # def update_user():
-    # def delete_user():
+        return Response("Data error, please try again", mimetype='text/plain', status=400)
+
+    sql = "INSERT INTO users (email, username, password, bio, birthdate"
+    params = []
+    if image_url != None:
+        sql += ", image_url) VALUES (?, ?, ?, ?, ?, ?)"
+        params.append(email)
+        params.append(username)
+        params.append(password)
+        params.append(bio)
+        params.append(birthdate)
+        params.append(image_url)
+    if image_url == None:
+        sql += ") VALUES (?, ?, ?, ?, ?)"
+        params.append(email)
+        params.append(username)
+        params.append(password)
+        params.append(bio)
+        params.append(birthdate)
+    created_user_id = -1
+    user = None
+    created_user_id = dbhelpers.run_insert_statement(sql, params)
+    if created_user_id != -1 and created_user_id != None:
+        # TODO a login here too
+        user = dbhelpers.run_select_statement(
+            "SELECT id, email, username, bio, birthdate, image_url FROM users WHERE id = ?", [created_user_id])
+        if user != None:
+            new_user_dictionary = {
+                "userId": user[0][0], "email": user[0][1], "username": user[0][2], "bio": user[0][3], "birthdate": user[0][4], "image_url": user[0][5]}
+            new_user_json = json.dumps(new_user_dictionary, default=str)
+            return Response(new_user_json, mimetype='application/json', status=201)
+        else:
+            return Response("Something went wrong, sorry", mimetype='text/plain', status=500)
+    else:
+        return Response("User cannot be created. Please try again", mimetype='text/plain', status=500)
+
+
+def update_user(request):
+    try:
+        email = request.json.get('email')
+        username = request.json.get('username')
+        password = request.json.get('password')
+        bio = request.json.get('bio')
+        birthdate = request.json.get('birthdate')
+        login_token = request.json['loginToken']
+        # add image url
+    except:
+        traceback.print_exc()
+        return Response("Please try again", mimetype='application/json', status=400)
+    if login_token == None:
+        return Response("Please update at least one field", mimetype='text/plain', status=400)
+    else:
+        # maybe need to add image url
+        if email == None and username == None and password == None and bio == None and birthdate == None:
+            return Response("Please enter the required data", mimetype='text/plain', status=400)
+        else:
+            params = []
+            sql = "UPDATE users u INNER JOIN user_session us on u.id = us.user_id SET"
+            if email != None:
+                sql += " u.email = ?,"
+                params.append(email)
+            if username != None:
+                sql += " u.username = ?,"
+                params.append(username)
+            if password != None:
+                sql += " u.password = ?,"
+                params.append(password)
+            if bio != None:
+                sql += " u.bio = ?,"
+                params.append(bio)
+            if birthdate != None:
+                sql += " u.birthdate = ?,"
+                params.append(birthdate)
+            sql = sql[:-1]
+            params.append(login_token)
+            sql += " WHERE login_token = ?"
+            rows = dbhelpers.run_update_statement(sql, params)
+            if rows == 1:
+                return Response("User information updated!", mimetype='text/plain', status=200)
+            else:
+                return Response("Error updating data", mimetype='text/plain', status=500)
+
+
+def delete_user(request):
+    try:
+        password = request.json['password']
+        login_token = request.json['loginToken']
+    except:
+        traceback.print_exc()
+        return Response("Please enter the required data", mimetype='application/json', status=401)
+    rows = dbhelpers.run_delete_statement(
+        "DELETE u, us FROM users u INNER JOIN user_session us ON u.id = us.user_id WHERE us.login_token = ? AND u.password = ?", [login_token, password])
+    if rows == 1:
+        return Response("User deleted!", mimetype='text/plain', status=200)
+    else:
+        return Response("Please try again", mimetype='text/plain', status=500)

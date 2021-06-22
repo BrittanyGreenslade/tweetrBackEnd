@@ -15,8 +15,16 @@ def get_users():
 @app.post("/api/users")
 def new_user():
     return users.create_user(request)
-# @app.patch("/api/users")
-# @app.delete("/api/users")
+
+
+@app.patch("/api/users")
+def update_user():
+    return users.update_user(request)
+
+
+@app.delete("/api/users")
+def delete_user():
+    return users.delete_user(request)
 
 # @app.post("/api/login")
 # @app.delete("/api/login")
