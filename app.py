@@ -1,19 +1,21 @@
-from flask import Flask, request, Response
+from flask import Flask, request
 import dbhelpers
 import json
 import sys
 import users
+import login
 app = Flask(__name__)
+
+# users calls
 
 
 @app.get("/api/users")
 def get_users():
     return users.get_users(request)
-    # print(user_json)
 
 
 @app.post("/api/users")
-def new_user():
+def create_user():
     return users.create_user(request)
 
 
@@ -25,9 +27,17 @@ def update_user():
 @app.delete("/api/users")
 def delete_user():
     return users.delete_user(request)
+# login calls
 
-# @app.post("/api/login")
-# @app.delete("/api/login")
+
+@app.post("/api/login")
+def user_login():
+    return login.user_login(request)
+
+
+@app.delete("/api/login")
+def user_logout():
+    return login.user_logout(request)
 
 
 # @app.get("/api/follows")

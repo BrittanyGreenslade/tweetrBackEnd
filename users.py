@@ -1,6 +1,4 @@
-import re
-from flask import Flask, request, Response
-from werkzeug.wrappers import response
+from flask import Response
 import dbhelpers
 import traceback
 import json
@@ -11,11 +9,7 @@ def get_users(request):
         user_id = int(request.args['userId'])
     except ValueError:
         traceback.print_exc()
-        # if you return a response here how can you see it in app.py
         return Response("Please enter a valid user ID", mimetype='text/plain', status=400)
-    # except:
-    #     422 (for if 'userId' key is not named)
-
     except:
         traceback.print_exc()
         return Response("Something went wrong, please try again", mimetype='text/plain', status=500)
@@ -40,23 +34,23 @@ def get_users(request):
 
 
 def create_user(request):
+    # for if the image url isn't input, if statements still work
+    # image_url = None
     try:
-        # how to do errors for email and username being empty without doing select statement first?
-        #or do i do that in the create user fn
         email = request.json['email']
         username = request.json['username']
         password = request.json['password']
         bio = request.json['bio']
-        # limit birthdate input format
+        # limit birthdate input format?
         birthdate = request.json['birthdate']
         image_url = request.json.get('imageUrl')
     except:
         traceback.print_exc()
-        return Response("Data error, please try again", mimetype='text/plain', status=400)
+        return Response("Please enter the required data", mimetype='text/plain', status=400)
 
     sql = "INSERT INTO users (email, username, password, bio, birthdate"
     params = []
-    if image_url != None:
+    if image_url != None and image_url != "":
         sql += ", image_url) VALUES (?, ?, ?, ?, ?, ?)"
         params.append(email)
         params.append(username)
@@ -64,7 +58,7 @@ def create_user(request):
         params.append(bio)
         params.append(birthdate)
         params.append(image_url)
-    if image_url == None:
+    else:
         sql += ") VALUES (?, ?, ?, ?, ?)"
         params.append(email)
         params.append(username)
@@ -80,7 +74,7 @@ def create_user(request):
             "SELECT id, email, username, bio, birthdate, image_url FROM users WHERE id = ?", [created_user_id])
         if user != None:
             new_user_dictionary = {
-                "userId": user[0][0], "email": user[0][1], "username": user[0][2], "bio": user[0][3], "birthdate": user[0][4], "image_url": user[0][5]}
+                "userId": user[0][0], "email": user[0][1], "username": user[0][2], "bio": user[0][3], "birthdate": user[0][4], "imageUrl": user[0][5]}
             new_user_json = json.dumps(new_user_dictionary, default=str)
             return Response(new_user_json, mimetype='application/json', status=201)
         else:
@@ -90,6 +84,7 @@ def create_user(request):
 
 
 def update_user(request):
+    login_token = None
     try:
         email = request.json.get('email')
         username = request.json.get('username')
@@ -97,34 +92,37 @@ def update_user(request):
         bio = request.json.get('bio')
         birthdate = request.json.get('birthdate')
         login_token = request.json['loginToken']
-        # add image url
+        image_url = request.json.get('imageUrl')
     except:
         traceback.print_exc()
         return Response("Please try again", mimetype='application/json', status=400)
-    if login_token == None:
+    if login_token == None or login_token == "":
         return Response("Please update at least one field", mimetype='text/plain', status=400)
     else:
         # maybe need to add image url
-        if email == None and username == None and password == None and bio == None and birthdate == None:
+        if email == None and username == None and password == None and bio == None and birthdate == None and image_url == None:
             return Response("Please enter the required data", mimetype='text/plain', status=400)
         else:
             params = []
             sql = "UPDATE users u INNER JOIN user_session us on u.id = us.user_id SET"
-            if email != None:
+            if email != None and email != "":
                 sql += " u.email = ?,"
                 params.append(email)
-            if username != None:
+            if username != None and username != "":
                 sql += " u.username = ?,"
                 params.append(username)
-            if password != None:
+            if password != None and password != "":
                 sql += " u.password = ?,"
                 params.append(password)
-            if bio != None:
+            if bio != None and bio != "":
                 sql += " u.bio = ?,"
                 params.append(bio)
-            if birthdate != None:
+            if birthdate != None and birthdate != "":
                 sql += " u.birthdate = ?,"
                 params.append(birthdate)
+            if image_url != None and image_url != "":
+                sql += " u.image_url = ?,"
+                params.append(image_url)
             sql = sql[:-1]
             params.append(login_token)
             sql += " WHERE login_token = ?"
