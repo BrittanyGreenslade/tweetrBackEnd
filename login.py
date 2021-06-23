@@ -10,14 +10,16 @@ def user_login(request):
     try:
         email = request.json['email']
         password = request.json['password']
+    except KeyError:
+        return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
-        return Response("Please enter the required data", mimetype='text/plain', status=400)
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     login_id = -1
     try:
         user = dbhelpers.run_select_statement(
             "SELECT u.id, u.username, u.bio, u.birthdate, u.image_url FROM users u WHERE u.password = ? and u.email = ?", [password, email])
-        print(user)
+        # print(user)
         if len(user) == 1:
             user_id = int(user[0][0])
             login_token = secrets.token_urlsafe(60)
@@ -34,15 +36,18 @@ def user_login(request):
     else:
         return Response("Invalid login - please try again", mimetype='text/plain', status=400)
 
-# ask about when freenom domains expire
-
 
 def user_logout(request):
-    # need to make sure password matches with logintoken (user_id)
     try:
-        login_token: request.json['loginToken']
-        # password: request.json['password']
+        login_token = request.json['loginToken']
+    except KeyError:
+        return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
-    dbhelpers.run_delete_statement(
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
+    rows = dbhelpers.run_delete_statement(
         "DELETE us FROM user_session us WHERE us.login_token = ?", [login_token])
+    if rows == 1:
+        return Response("Logout success", mimetype='text/plain', status=200)
+    else:
+        return Response("Logout failed, please try again", mimetype='application/json', status=500)

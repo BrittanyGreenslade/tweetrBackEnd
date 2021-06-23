@@ -5,11 +5,14 @@ import json
 
 
 def get_users(request):
-    user_id = None
     try:
+        # .get returns none if key not provided
+        # but this doesn't allow for the key being spelled wrong/keyError - fix in tweets too
         user_id = request.args.get('userId')
         if user_id != None:
             user_id = int(user_id)
+    # except KeyError:
+    #     return Response("Invalid key name", mimetype='text/plain', status=400)
     except ValueError:
         traceback.print_exc()
         return Response("Please enter a valid user ID", mimetype='text/plain', status=422)
@@ -17,6 +20,7 @@ def get_users(request):
         traceback.print_exc()
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
+        # do I have to select id here or can I assume the one provided by the user above is ok
         users = dbhelpers.run_select_statement(
             "SELECT id AS userId, email, username, bio, birthdate, image_url AS imageUrl FROM users WHERE id = ?", [user_id])
     else:
@@ -37,8 +41,7 @@ def get_users(request):
 
 
 def create_user(request):
-    # for if the image url isn't input, if statements still work
-    # image_url = None
+    # how to check if email/username already exists without doing a select?
     try:
         email = request.json['email']
         username = request.json['username']
@@ -47,10 +50,11 @@ def create_user(request):
         # limit birthdate input format?
         birthdate = request.json['birthdate']
         image_url = request.json.get('imageUrl')
-    # key error
+    except KeyError:
+        return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
-        return Response("Please enter the required data", mimetype='text/plain', status=400)
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
 
     sql = "INSERT INTO users (email, username, password, bio, birthdate"
     params = [email, username, password, bio, birthdate]
@@ -72,7 +76,7 @@ def create_user(request):
             new_user_json = json.dumps(new_user_dictionary, default=str)
             return Response(new_user_json, mimetype='application/json', status=201)
         else:
-            return Response("Something went wrong, sorry", mimetype='text/plain', status=500)
+            return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
     else:
         return Response("User cannot be created. Please try again", mimetype='text/plain', status=500)
 
@@ -86,13 +90,13 @@ def update_user(request):
         birthdate = request.json.get('birthdate')
         login_token = request.json['loginToken']
         image_url = request.json.get('imageUrl')
-    # key error for login token/anything required things
+    except KeyError:
+        return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
-        return Response("Please try again", mimetype='application/json', status=400)
+        return Response("Please try again", mimetype='text/plain', status=400)
 
     else:
-        # maybe need to add image url
         if email == None and username == None and password == None and bio == None and birthdate == None and image_url == None:
             return Response("Please enter the required data", mimetype='text/plain', status=400)
         else:
@@ -127,14 +131,15 @@ def update_user(request):
 
 
 def delete_user(request):
-    # need to make sure password matches with logintoken (user_id)
     try:
         password = request.json['password']
         login_token = request.json['loginToken']
-    except:
-        # key error
-        traceback.print_exc()
+    except KeyError:
         return Response("Please enter the required data", mimetype='application/json', status=401)
+    except:
+        traceback.print_exc()
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=401)
+
     rows = dbhelpers.run_delete_statement(
         "DELETE u, us FROM users u INNER JOIN user_session us ON u.id = us.user_id WHERE us.login_token = ? AND u.password = ?", [login_token, password])
     if rows == 1:

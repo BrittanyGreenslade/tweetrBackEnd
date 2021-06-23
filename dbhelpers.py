@@ -1,7 +1,6 @@
 # Woah so DRY! Look at this, helper functions that can help you run DB queries
 import dbconnect
 import traceback
-import sys
 from flask import Response
 
 # The same comments apply to all the helper functions in here!
@@ -30,6 +29,13 @@ def run_select_statement(sql, params):
     dbconnect.close_db_connection(conn)
     # Return the result
     return result
+
+
+def check_user_id(request):
+    user_id = request.args['userId']
+    if user_id != None:
+        user_id = int(user_id)
+    return user_id
 
 
 def run_insert_statement(sql, params):

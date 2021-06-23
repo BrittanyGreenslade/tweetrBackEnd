@@ -1,9 +1,10 @@
 from flask import Flask, request
-import dbhelpers
-import json
+# import dbhelpers
+# import json
 import sys
 import users
 import login
+import tweets
 app = Flask(__name__)
 
 # users calls
@@ -46,7 +47,9 @@ def user_logout():
 
 # @app.get("/api/followers")
 
-# @app.get("/api/tweets")
+@app.get("/api/tweets")
+def get_tweets():
+    return tweets.get_tweets(request)
 # @app.post("/api/tweets")
 # @app.patch("/api/tweets")
 # @app.delete("/api/tweets")
@@ -63,6 +66,7 @@ def user_logout():
 # @app.get("/api/comment-likes")
 # @app.post("/api/comment-likes")
 # @app.delete("/api/comment-likes")
+
 
 if(len(sys.argv) > 1):
     mode = sys.argv[1]
