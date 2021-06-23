@@ -5,15 +5,18 @@ import json
 
 
 def get_users(request):
+    user_id = None
     try:
-        user_id = int(request.args['userId'])
+        user_id = request.args.get('userId')
+        if user_id != None:
+            user_id = int(user_id)
     except ValueError:
         traceback.print_exc()
-        return Response("Please enter a valid user ID", mimetype='text/plain', status=400)
+        return Response("Please enter a valid user ID", mimetype='text/plain', status=422)
     except:
         traceback.print_exc()
-        return Response("Something went wrong, please try again", mimetype='text/plain', status=500)
-    if user_id != None or user_id != "":
+        return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
+    if user_id != None and user_id != "":
         users = dbhelpers.run_select_statement(
             "SELECT id AS userId, email, username, bio, birthdate, image_url AS imageUrl FROM users WHERE id = ?", [user_id])
     else:
@@ -44,27 +47,18 @@ def create_user(request):
         # limit birthdate input format?
         birthdate = request.json['birthdate']
         image_url = request.json.get('imageUrl')
+    # key error
     except:
         traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=400)
 
     sql = "INSERT INTO users (email, username, password, bio, birthdate"
-    params = []
+    params = [email, username, password, bio, birthdate]
     if image_url != None and image_url != "":
         sql += ", image_url) VALUES (?, ?, ?, ?, ?, ?)"
-        params.append(email)
-        params.append(username)
-        params.append(password)
-        params.append(bio)
-        params.append(birthdate)
         params.append(image_url)
     else:
         sql += ") VALUES (?, ?, ?, ?, ?)"
-        params.append(email)
-        params.append(username)
-        params.append(password)
-        params.append(bio)
-        params.append(birthdate)
     created_user_id = -1
     user = None
     created_user_id = dbhelpers.run_insert_statement(sql, params)
@@ -84,7 +78,6 @@ def create_user(request):
 
 
 def update_user(request):
-    login_token = None
     try:
         email = request.json.get('email')
         username = request.json.get('username')
@@ -93,11 +86,11 @@ def update_user(request):
         birthdate = request.json.get('birthdate')
         login_token = request.json['loginToken']
         image_url = request.json.get('imageUrl')
+    # key error for login token/anything required things
     except:
         traceback.print_exc()
         return Response("Please try again", mimetype='application/json', status=400)
-    if login_token == None or login_token == "":
-        return Response("Please update at least one field", mimetype='text/plain', status=400)
+
     else:
         # maybe need to add image url
         if email == None and username == None and password == None and bio == None and birthdate == None and image_url == None:
@@ -134,10 +127,12 @@ def update_user(request):
 
 
 def delete_user(request):
+    # need to make sure password matches with logintoken (user_id)
     try:
         password = request.json['password']
         login_token = request.json['loginToken']
     except:
+        # key error
         traceback.print_exc()
         return Response("Please enter the required data", mimetype='application/json', status=401)
     rows = dbhelpers.run_delete_statement(

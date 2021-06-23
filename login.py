@@ -34,8 +34,11 @@ def user_login(request):
     else:
         return Response("Invalid login - please try again", mimetype='text/plain', status=400)
 
+# ask about when freenom domains expire
+
 
 def user_logout(request):
+    # need to make sure password matches with logintoken (user_id)
     try:
         login_token: request.json['loginToken']
         # password: request.json['password']
