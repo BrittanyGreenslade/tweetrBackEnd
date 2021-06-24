@@ -1,9 +1,13 @@
 # Woah so DRY! Look at this, helper functions that can help you run DB queries
 import dbconnect
 import traceback
-from flask import Response
-
+from flask import Response, request
+import json
+import mariadb
 # The same comments apply to all the helper functions in here!
+# except:
+#     do exceptions for db here
+# https://mariadb-corporation.github.io/mariadb-connector-python/module.html#exceptions
 
 
 def run_select_statement(sql, params):
@@ -16,12 +20,18 @@ def run_select_statement(sql, params):
         cursor.execute(sql, params)
         result = cursor.fetchall()
     # TODO Do a better job of catching more specific errors! Might need to find a way to return error-specific results
-
-    # except:
-    #     do exceptions for db here
-    # https://mariadb-corporation.github.io/mariadb-connector-python/module.html#exceptions
+    # integrity error can't happen here?
+    # except mariadb.IntegrityError:
+    #     traceback.print_exc()
+    #     result = Response("Unsuccessful - please try again",
+    #                       mimetype='text/plain', status=400)
+    except mariadb.ProgrammingError:
+        traceback.print_exc()
+        # if there's an error in SQL statement
+        result = Response("Database error", mimetype='text/plain', status=500)
     except:
         traceback.print_exc()
+
         print("DO BETTER ERROR CATCHING")
 
     # Close the resources
@@ -31,22 +41,18 @@ def run_select_statement(sql, params):
     return result
 
 
-def check_user_id(request):
-    user_id = request.args['userId']
-    if user_id != None:
-        user_id = int(user_id)
-    return user_id
-
-
 def run_insert_statement(sql, params):
     conn = dbconnect.get_db_connection()
     cursor = dbconnect.get_db_cursor(conn)
     result = None
-
     try:
         cursor.execute(sql, params)
         conn.commit()
         result = cursor.lastrowid
+    except mariadb.IntegrityError:
+        traceback.print_exc()
+        result = Response("Duplicate entry!",
+                          mimetype='text/plain', status=400)
     except:
         traceback.print_exc()
         print("DO BETTER ERROR CATCHING")

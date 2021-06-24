@@ -15,11 +15,9 @@ def user_login(request):
     except:
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
-    login_id = -1
     try:
         user = dbhelpers.run_select_statement(
             "SELECT u.id, u.username, u.bio, u.birthdate, u.image_url FROM users u WHERE u.password = ? and u.email = ?", [password, email])
-        # print(user)
         if len(user) == 1:
             user_id = int(user[0][0])
             login_token = secrets.token_urlsafe(60)
@@ -28,7 +26,8 @@ def user_login(request):
     except:
         traceback.print_exc()
         return Response("Something went wrong, please try again", mimetype='text/plain', status=500)
-    if login_id != -1:
+    # dbhelpers returns none if fails
+    if login_id != None:
         login_dictionary = {"loginToken": login_token,
                             "userId": user_id, "email": email, "username": user[0][1], "bio": user[0][2], "birthdate": user[0][3], "imageUrl": user[0][4]}
         login_json = json.dumps(login_dictionary, default=str)

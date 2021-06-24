@@ -50,8 +50,16 @@ def user_logout():
 @app.get("/api/tweets")
 def get_tweets():
     return tweets.get_tweets(request)
-# @app.post("/api/tweets")
-# @app.patch("/api/tweets")
+
+
+@app.post("/api/tweets")
+def post_tweet():
+    return tweets.post_tweet(request)
+
+
+@app.patch("/api/tweets")
+def edit_tweet():
+    return tweets.edit_tweet(request)
 # @app.delete("/api/tweets")
 
 # @app.get("/api/tweet-likes")

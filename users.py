@@ -1,18 +1,14 @@
-from flask import Response
+from flask import Flask, request, Response
 import dbhelpers
 import traceback
 import json
+import helpers
+import mariadb
 
 
 def get_users(request):
     try:
-        # .get returns none if key not provided
-        # but this doesn't allow for the key being spelled wrong/keyError - fix in tweets too
-        user_id = request.args.get('userId')
-        if user_id != None:
-            user_id = int(user_id)
-    # except KeyError:
-    #     return Response("Invalid key name", mimetype='text/plain', status=400)
+        user_id = helpers.check_user_id(request)
     except ValueError:
         traceback.print_exc()
         return Response("Please enter a valid user ID", mimetype='text/plain', status=422)
@@ -20,18 +16,21 @@ def get_users(request):
         traceback.print_exc()
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
-        # do I have to select id here or can I assume the one provided by the user above is ok
+        # uses user_id provided above
         users = dbhelpers.run_select_statement(
-            "SELECT id AS userId, email, username, bio, birthdate, image_url AS imageUrl FROM users WHERE id = ?", [user_id])
+            "SELECT email, username, bio, birthdate, image_url AS imageUrl FROM users WHERE id = ?", [user_id])
     else:
         users = dbhelpers.run_select_statement(
-            "SELECT id AS userId, email, username, bio, birthdate, image_url AS imageUrl FROM users", [])
+            "SELECT email, username, bio, birthdate, image_url AS imageUrl FROM users", [])
     user_dictionaries = []
+    user_json = None
+    if type(users) == Response:
+        return users
     if len(users) != 0:
         for user in users:
-            user_dictionaries.append({"userId": user[0], "email": user[1], "username": user[2],
-                                      "bio": user[3], "birthdate": user[4], "imageUrl": user[5]})
-        user_json = json.dumps(user_dictionaries, default=str)
+            user_dictionaries.append({"userId": user_id, "email": user[0], "username": user[1],
+                                      "bio": user[2], "birthdate": user[3], "imageUrl": user[4]})
+            user_json = json.dumps(user_dictionaries, default=str)
     else:
         return Response("No user data available", mimetype='text/plain', status=400)
     if user_json != None:
@@ -63,10 +62,14 @@ def create_user(request):
         params.append(image_url)
     else:
         sql += ") VALUES (?, ?, ?, ?, ?)"
-    created_user_id = -1
     user = None
     created_user_id = dbhelpers.run_insert_statement(sql, params)
-    if created_user_id != -1 and created_user_id != None:
+    # insert statement in dbhelpers returns none so this works
+#  str(type(created_user_id)) != "<class 'flask.wrappers.Response'>"
+# isinstance takes 2 args - thing to check, type to check against (maybe broken)
+    if type(created_user_id) == Response:
+        return created_user_id
+    if created_user_id != None:
         # TODO a login here too
         user = dbhelpers.run_select_statement(
             "SELECT id, email, username, bio, birthdate, image_url FROM users WHERE id = ?", [created_user_id])
