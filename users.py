@@ -4,6 +4,7 @@ import traceback
 import json
 import helpers
 import mariadb
+from datetime import date
 
 
 def get_users(request):
@@ -40,14 +41,17 @@ def get_users(request):
 
 
 def create_user(request):
-    # how to check if email/username already exists without doing a select?
+    birthdate = None
+    # if username/email exists already - this will be a db error in dbhelpers
     try:
         email = request.json['email']
         username = request.json['username']
         password = request.json['password']
         bio = request.json['bio']
-        # limit birthdate input format?
         birthdate = request.json['birthdate']
+        birthdate = helpers.birthdate_validity(birthdate)
+        if type(birthdate) == Response:
+            return birthdate
         image_url = request.json.get('imageUrl')
     except KeyError:
         return Response("Please enter the required data", mimetype='text/plain', status=401)
@@ -91,6 +95,9 @@ def update_user(request):
         password = request.json.get('password')
         bio = request.json.get('bio')
         birthdate = request.json.get('birthdate')
+        birthdate = helpers.birthdate_validity(birthdate)
+        if type(birthdate) == Response:
+            return birthdate
         login_token = request.json['loginToken']
         image_url = request.json.get('imageUrl')
     except KeyError:

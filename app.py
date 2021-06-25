@@ -60,7 +60,11 @@ def post_tweet():
 @app.patch("/api/tweets")
 def edit_tweet():
     return tweets.edit_tweet(request)
-# @app.delete("/api/tweets")
+
+
+@app.delete("/api/tweets")
+def delete_tweet():
+    return tweets.delete_tweet(request)
 
 # @app.get("/api/tweet-likes")
 # @app.post("/api/tweet-likes")

@@ -94,4 +94,19 @@ def edit_tweet(request):
         return Response("Post updated!", mimetype='text/plain', status=200)
     else:
         return Response("Error updating post", mimetype='text/plain', status=500)
-# def delete_tweet():
+
+
+def delete_tweet(request):
+    try:
+        login_token = request.json['loginToken']
+        tweet_id = request.json['tweetId']
+    except KeyError:
+        return Response("Please enter the required data", mimetype='text/plain', status=401)
+    except:
+        traceback.print_exc()
+    rows = dbhelpers.run_delete_statement(
+        "DELETE t FROM tweets t INNER JOIN user_session us ON t.user_id = us.user_id WHERE t.id = ? AND us.login_token = ?", [tweet_id, login_token])
+    if rows == 1:
+        return Response("Tweet deleted!", mimetype='text/plain', status=200)
+    else:
+        return Response("Please try again", mimetype='text/plain', status=500)
