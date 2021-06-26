@@ -1,10 +1,11 @@
-from flask import Flask, request, Response
+from flask import Response
 import dbhelpers
 import traceback
 import json
 import helpers
-import mariadb
-from datetime import date
+import login
+# import mariadb
+# from datetime import date
 
 
 def get_users(request):
@@ -74,6 +75,7 @@ def create_user(request):
     if type(created_user_id) == Response:
         return created_user_id
     if created_user_id != None:
+        # login.user_login()
         # TODO a login here too
         user = dbhelpers.run_select_statement(
             "SELECT id, email, username, bio, birthdate, image_url FROM users WHERE id = ?", [created_user_id])

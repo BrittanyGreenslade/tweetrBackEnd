@@ -49,7 +49,7 @@ def post_tweet(request):
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     user_id = dbhelpers.run_select_statement(
         "SELECT user_id FROM user_session WHERE login_token = ?", [login_token])
-    # dbhelpers run select returns none if select doesn't work so don't have to set it here
+        #TODO add in if dbhelpers returns a response
     if len(user_id) != 0:
         user_id = int(user_id[0][0])
         sql = "INSERT INTO tweets(user_id, content"

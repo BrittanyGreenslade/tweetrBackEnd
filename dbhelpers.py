@@ -24,7 +24,7 @@ def run_select_statement(sql, params):
             # if there's an error in SQL statement
             except mariadb.ProgrammingError:
                 traceback.print_exc()
-                result = Response("Database error",
+                result = Response("Programming error",
                                   mimetype='text/plain', status=500)
             except mariadb.OperationalError:
                 result = Response("Operational error",
@@ -64,7 +64,7 @@ def run_insert_statement(sql, params):
         result = cursor.lastrowid
     except mariadb.IntegrityError:
         traceback.print_exc()
-        result = Response("Duplicate entry!",
+        result = Response("Invalid entry!",
                           mimetype='text/plain', status=400)
     except mariadb.DataError:
         traceback.print_exc()
@@ -132,7 +132,7 @@ def run_update_statement(sql, params):
         result = cursor.rowcount
     except mariadb.IntegrityError:
         traceback.print_exc()
-        result = Response("Duplicate entry!",
+        result = Response("Invalid entry!",
                           mimetype='text/plain', status=400)
     except mariadb.DataError:
         traceback.print_exc()

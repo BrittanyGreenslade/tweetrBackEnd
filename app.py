@@ -5,6 +5,7 @@ import sys
 import users
 import login
 import tweets
+import tweetLikes
 app = Flask(__name__)
 
 # users calls
@@ -66,8 +67,15 @@ def edit_tweet():
 def delete_tweet():
     return tweets.delete_tweet(request)
 
-# @app.get("/api/tweet-likes")
-# @app.post("/api/tweet-likes")
+
+@app.get("/api/tweet-likes")
+def get_tweet_likes():
+    return tweetLikes.get_tweet_likes(request)
+
+
+@app.post("/api/tweet-likes")
+def like_tweet():
+    return tweetLikes.like_tweet(request)
 # @app.delete("/api/tweet-likes")
 
 # @app.get("/api/comments")
