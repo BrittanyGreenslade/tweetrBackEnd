@@ -13,7 +13,7 @@ def get_users(request):
         user_id = helpers.check_user_id(request)
     except ValueError:
         traceback.print_exc()
-        return Response("Please enter a valid user ID", mimetype='text/plain', status=422)
+        return Response("Invalid user ID", mimetype='text/plain', status=422)
     except:
         traceback.print_exc()
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
@@ -26,6 +26,7 @@ def get_users(request):
             "SELECT email, username, bio, birthdate, image_url AS imageUrl FROM users", [])
     user_dictionaries = []
     user_json = None
+    # if there's any error in dbhelpers, it will be returned here
     if type(users) == Response:
         return users
     if len(users) != 0:
@@ -68,17 +69,17 @@ def create_user(request):
     else:
         sql += ") VALUES (?, ?, ?, ?, ?)"
     user = None
-    created_user_id = dbhelpers.run_insert_statement(sql, params)
+    last_row_id = dbhelpers.run_insert_statement(sql, params)
     # insert statement in dbhelpers returns none so this works
 #  str(type(created_user_id)) != "<class 'flask.wrappers.Response'>"
 # isinstance takes 2 args - thing to check, type to check against (maybe broken)
-    if type(created_user_id) == Response:
-        return created_user_id
-    if created_user_id != None:
+    if type(last_row_id) == Response:
+        return last_row_id
+    if last_row_id != None:
         # login.user_login()
         # TODO a login here too
         user = dbhelpers.run_select_statement(
-            "SELECT id, email, username, bio, birthdate, image_url FROM users WHERE id = ?", [created_user_id])
+            "SELECT id, email, username, bio, birthdate, image_url FROM users WHERE id = ?", [last_row_id])
         if user != None:
             new_user_dictionary = {
                 "userId": user[0][0], "email": user[0][1], "username": user[0][2], "bio": user[0][3], "birthdate": user[0][4], "imageUrl": user[0][5]}
@@ -136,6 +137,8 @@ def update_user(request):
             params.append(login_token)
             sql += " WHERE login_token = ?"
             rows = dbhelpers.run_update_statement(sql, params)
+            if type(rows) == Response:
+                return rows
             if rows == 1:
                 return Response("User information updated!", mimetype='text/plain', status=200)
             else:
@@ -154,6 +157,8 @@ def delete_user(request):
 
     rows = dbhelpers.run_delete_statement(
         "DELETE u, us FROM users u INNER JOIN user_session us ON u.id = us.user_id WHERE us.login_token = ? AND u.password = ?", [login_token, password])
+    if type(rows) == Response:
+        return rows
     if rows == 1:
         return Response("User deleted!", mimetype='text/plain', status=200)
     else:

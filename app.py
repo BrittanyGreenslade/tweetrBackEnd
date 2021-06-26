@@ -6,6 +6,9 @@ import users
 import login
 import tweets
 import tweetLikes
+import comments
+import commentLikes
+import follows
 app = Flask(__name__)
 
 # users calls
@@ -42,12 +45,6 @@ def user_logout():
     return login.user_logout(request)
 
 
-# @app.get("/api/follows")
-# @app.post("/api/follows")
-# @app.delete("/api/follows")
-
-# @app.get("/api/followers")
-
 @app.get("/api/tweets")
 def get_tweets():
     return tweets.get_tweets(request)
@@ -76,16 +73,55 @@ def get_tweet_likes():
 @app.post("/api/tweet-likes")
 def like_tweet():
     return tweetLikes.like_tweet(request)
-# @app.delete("/api/tweet-likes")
 
-# @app.get("/api/comments")
-# @app.post("/api/comments")
-# @app.patch("/api/comments")
-# @app.delete("/api/comments")
 
-# @app.get("/api/comment-likes")
-# @app.post("/api/comment-likes")
-# @app.delete("/api/comment-likes")
+@app.delete("/api/tweet-likes")
+def unliked_tweet():
+    return tweetLikes.unlike_tweet(request)
+
+
+@app.get("/api/comments")
+def get_comments():
+    return comments.get_comments(request)
+
+
+@app.post("/api/comments")
+def post_comment():
+    return comments.post_comment(request)
+
+
+@app.patch("/api/comments")
+def edit_comment():
+    return comments.edit_comment(request)
+
+
+@app.delete("/api/comments")
+def delete_comment():
+    return comments.delete_comment(request)
+
+
+@app.get("/api/comment-likes")
+def get_comment_likes():
+    return commentLikes.get_comment_likes(request)
+
+
+@app.post("/api/comment-likes")
+def like_comment():
+    return commentLikes.like_comment(request)
+
+
+@app.delete("/api/comment-likes")
+def unlike_comment():
+    return commentLikes.unlike_comment(request)
+
+
+@app.get("/api/follows")
+def get_follows():
+    return follows.get_follows(request)
+# @app.post("/api/follows")
+# @app.delete("/api/follows")
+
+# @app.get("/api/followers")
 
 
 if(len(sys.argv) > 1):

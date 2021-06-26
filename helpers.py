@@ -34,10 +34,19 @@ def check_tweet_id(request):
     return tweet_id
 
 
+def check_comment_id(request):
+    comment_id = request.args.get('commentId')
+    if comment_id != None:
+        comment_id = int(comment_id)
+    return comment_id
+
+
 def birthdate_validity(birthdate):
     if birthdate != None:
         birthdate = date.fromisoformat(birthdate)
-        if birthdate >= date.fromisoformat("1900-01-01") or birthdate <= date.today():
+        if birthdate <= date.fromisoformat("1900-01-01") or birthdate >= date.today():
             result = Response("Invalid birthdate input",
                               mimetype='text/plain', status=400)
+        else:
+            result = birthdate
     return result

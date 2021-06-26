@@ -1,4 +1,3 @@
-from typing import Type, ValuesView
 from flask import Response
 import dbhelpers
 import traceback
@@ -18,6 +17,8 @@ def user_login(request):
     try:
         user = dbhelpers.run_select_statement(
             "SELECT u.id, u.username, u.bio, u.birthdate, u.image_url FROM users u WHERE u.password = ? and u.email = ?", [password, email])
+        if type(user) == Response:
+            return user
         if len(user) == 1:
             user_id = int(user[0][0])
             login_token = secrets.token_urlsafe(60)
@@ -46,6 +47,8 @@ def user_logout(request):
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     rows = dbhelpers.run_delete_statement(
         "DELETE us FROM user_session us WHERE us.login_token = ?", [login_token])
+    if type(rows) == Response:
+            return rows
     if rows == 1:
         return Response("Logout success", mimetype='text/plain', status=200)
     else:
