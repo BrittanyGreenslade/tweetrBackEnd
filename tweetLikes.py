@@ -10,13 +10,13 @@ def get_tweet_likes(request):
         tweet_id = helpers.check_tweet_id(request)
     except ValueError:
         traceback.print_exc()
-        return Response("Invalid user ID", mimetype='text/plain', status=422)
+        return Response("Invalid tweet ID", mimetype='text/plain', status=422)
     except:
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     if tweet_id != None and tweet_id != "":
         tweets_like_info = dbhelpers.run_select_statement(
-            "SELECT t.user_id, u.username FROM tweets t INNER JOIN users u ON u.id = t.user_id WHERE t.id = ?", [tweet_id])
+            "SELECT t.user_id, u.username FROM tweets t INNER JOIN users u ON u.id = t.user_id WHERE t.id = ?", [tweet_id, ])
     else:
         tweets_like_info = dbhelpers.run_select_statement(
             "SELECT t.user_id, u.username FROM tweets t INNER JOIN users u ON u.id = t.user_id", [])
@@ -31,7 +31,7 @@ def get_tweet_likes(request):
             tweet_likes_json = json.dumps(
                 tweet_likes_dictionaries, default=str)
     else:
-        return Response("No user data available", mimetype='text/plain', status=400)
+        return Response("No data available", mimetype='text/plain', status=400)
     if tweet_likes_json != None:
         return Response(tweet_likes_json, mimetype='application/json', status=200)
     else:
@@ -41,7 +41,7 @@ def get_tweet_likes(request):
 def like_tweet(request):
     try:
         login_token = request.json['loginToken']
-        tweet_id = request.json['tweetId']
+        tweet_id = int(request.json['tweetId'])
     except ValueError:
         traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)
@@ -67,7 +67,7 @@ def like_tweet(request):
 def unlike_tweet(request):
     try:
         login_token = request.json['loginToken']
-        tweet_id = request.json['tweetId']
+        tweet_id = int(request.json['tweetId'])
     except ValueError:
         traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)

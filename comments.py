@@ -10,13 +10,13 @@ def get_comments(request):
         tweet_id = helpers.check_tweet_id(request)
     except ValueError:
         traceback.print_exc()
-        return Response("Invalid user ID", mimetype='text/plain', status=422)
+        return Response("Invalid tweet ID", mimetype='text/plain', status=422)
     except:
         traceback.print_exc()
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if tweet_id != None and tweet_id != "":
         comments = dbhelpers.run_select_statement(
-            "SELECT c.user_id, u.username, c.content, c.created_at, c.id, c.tweet_id FROM comments c INNER JOIN users u ON c.user_id = u.id WHERE c.tweet_id = ?", [tweet_id])
+            "SELECT c.user_id, u.username, c.content, c.created_at, c.id, c.tweet_id FROM comments c INNER JOIN users u ON c.user_id = u.id WHERE c.tweet_id = ?", [tweet_id, ])
     else:
         comments = dbhelpers.run_select_statement(
             "SELECT c.user_id, u.username, c.content, c.created_at, c.id, c.tweet_id FROM comments c INNER JOIN users u ON c.user_id = u.id", [])
@@ -41,7 +41,7 @@ def post_comment(request):
     try:
         login_token = request.json['loginToken']
         content = request.json['content']
-        tweet_id = helpers.check_tweet_id(request)
+        tweet_id = int(request.json['tweetId'])
     except ValueError:
         traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)
@@ -51,7 +51,7 @@ def post_comment(request):
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     user_id = dbhelpers.run_select_statement(
-        "SELECT user_id FROM user_session WHERE login_token = ?", [login_token])
+        "SELECT user_id FROM user_session WHERE login_token = ?", [login_token, ])
     if len(user_id) != 0:
         user_id = int(user_id[0][0])
         last_row_id = dbhelpers.run_insert_statement(
@@ -71,7 +71,7 @@ def edit_comment(request):
     try:
         login_token = request.json['loginToken']
         content = request.json['content']
-        comment_id = request.json['commentId']
+        comment_id = int(request.json['commentId'])
     except ValueError:
         traceback.print_exc()
         return Response("Invalid comment ID", mimetype='text/plain', status=422)
@@ -93,7 +93,7 @@ def edit_comment(request):
 def delete_comment(request):
     try:
         login_token = request.json['loginToken']
-        comment_id = request.json['commentId']
+        comment_id = int(request.json['commentId'])
     except ValueError:
         traceback.print_exc()
         return Response("Invalid comment ID", mimetype='text/plain', status=422)

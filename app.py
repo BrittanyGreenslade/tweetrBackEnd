@@ -118,10 +118,21 @@ def unlike_comment():
 @app.get("/api/follows")
 def get_follows():
     return follows.get_follows(request)
-# @app.post("/api/follows")
-# @app.delete("/api/follows")
 
-# @app.get("/api/followers")
+
+@app.post("/api/follows")
+def follow_user():
+    return follows.follow_user(request)
+
+
+@app.delete("/api/follows")
+def unfollow_user():
+    return follows.unfollow_user(request)
+
+
+@app.get("/api/followers")
+def get_followers():
+    return follows.get_followers(request)
 
 
 if(len(sys.argv) > 1):

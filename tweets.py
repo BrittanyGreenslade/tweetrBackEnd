@@ -16,7 +16,7 @@ def get_tweets(request):
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
         tweets = dbhelpers.run_select_statement(
-            "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url FROM tweets t INNER JOIN users u ON t.user_id = u.id WHERE t.user_id = ?", [user_id])
+            "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url FROM tweets t INNER JOIN users u ON t.user_id = u.id WHERE t.user_id = ?", [user_id, ])
     else:
         tweets = dbhelpers.run_select_statement(
             "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url FROM tweets t INNER JOIN users u ON t.user_id = u.id", [])
@@ -48,7 +48,7 @@ def post_tweet(request):
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     user_id = dbhelpers.run_select_statement(
-        "SELECT user_id FROM user_session WHERE login_token = ?", [login_token])
+        "SELECT user_id FROM user_session WHERE login_token = ?", [login_token, ])
     if len(user_id) != 0:
         user_id = int(user_id[0][0])
         sql = "INSERT INTO tweets(user_id, content"
@@ -74,7 +74,7 @@ def edit_tweet(request):
         login_token = request.json['loginToken']
         content = request.json['content']
         image_url = request.json.get('imageUrl')
-        tweet_id = request.json['tweetId']
+        tweet_id = int(request.json['tweetId'])
     except ValueError:
         traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)
@@ -103,7 +103,7 @@ def edit_tweet(request):
 def delete_tweet(request):
     try:
         login_token = request.json['loginToken']
-        tweet_id = request.json['tweetId']
+        tweet_id = int(request.json['tweetId'])
     except ValueError:
         traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)

@@ -12,7 +12,7 @@ def get_user_id(login_token):
     else:
         user_id = None
     return user_id
-# check if user_id exists
+# check if user_id exists (get only)
 
 
 def check_user_id(request):
@@ -24,7 +24,7 @@ def check_user_id(request):
     if user_id != None:
         user_id = int(user_id)
     return user_id
-# check if tweet_id exists
+# check if tweet_id exists(get only)
 
 
 def check_tweet_id(request):
@@ -32,6 +32,8 @@ def check_tweet_id(request):
     if tweet_id != None:
         tweet_id = int(tweet_id)
     return tweet_id
+
+# check if comment_id exists(get only)
 
 
 def check_comment_id(request):

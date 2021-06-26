@@ -6,7 +6,7 @@ import json
 
 def get_follows(request):
     try:
-        user_id = request.json['userId']
+        user_id = int(request.args['userId'])
     except ValueError:
         traceback.print_exc()
         return Response("Invalid user ID", mimetype='text/plain', status=422)
@@ -15,7 +15,7 @@ def get_follows(request):
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
         follows = dbhelpers.run_select_statement(
-            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id WHERE uf.user_id = ?", [user_id])
+            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id WHERE uf.user_id = ?", [user_id, ])
     else:
         follows = dbhelpers.run_select_statement(
             "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id", [])
@@ -39,7 +39,7 @@ def get_follows(request):
 def follow_user(request):
     try:
         login_token = request.json['loginToken']
-        follow_id = request.json['followId']
+        follow_id = int(request.json['followId'])
     except ValueError:
         traceback.print_exc()
         return Response("Invalid follow ID", mimetype='text/plain', status=422)
@@ -49,13 +49,13 @@ def follow_user(request):
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     user_id = dbhelpers.run_select_statement(
-        "SELECT user_id FROM user_session WHERE login_token = ?", [login_token])
-    if type(user_id) == Response:
-        return user_id
+        "SELECT user_id FROM user_session WHERE login_token = ?", [login_token, ])
     if len(user_id) != 0:
         user_id = int(user_id[0][0])
         last_row_id = dbhelpers.run_insert_statement(
             "INSERT INTO user_follows(user_id, follow_id) VALUES(?, ?)", [user_id, follow_id])
+        if type(last_row_id) == Response:
+            return last_row_id
         if last_row_id != None:
             return Response("Follow success!", mimetype='text/plain', status=201)
         else:
@@ -67,7 +67,7 @@ def follow_user(request):
 def unfollow_user(request):
     try:
         login_token = request.json['loginToken']
-        follow_id = request.json['followId']
+        follow_id = int(request.json['followId'])
     except ValueError:
         traceback.print_exc()
         return Response("Invalid follow ID", mimetype='text/plain', status=422)
@@ -84,10 +84,13 @@ def unfollow_user(request):
     else:
         return Response("Please try again", mimetype='text/plain', status=500)
 
+# double check this
+
 
 def get_followers(request):
+    user_id = None
     try:
-        user_id = request.json['userId']
+        user_id = int(request.args['userId'])
     except ValueError:
         traceback.print_exc()
         return Response("Invalid user ID", mimetype='text/plain', status=422)
@@ -96,7 +99,7 @@ def get_followers(request):
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
         followers = dbhelpers.run_select_statement(
-            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id WHERE uf.follow_id = ?", [user_id])
+            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id WHERE uf.follow_id = ?", [user_id, ])
     if type(followers) == Response:
         return followers
     followers_dictionaries = []
@@ -107,7 +110,7 @@ def get_followers(request):
                                            "birthdate": follower[3], "imageUrl": follower[4]})
         followers_json = json.dumps(followers_dictionaries, default=str)
     else:
-        return Response("Follow data unavailable", mimetype='text/plain', status=400)
+        return Response("Follower data unavailable", mimetype='text/plain', status=400)
     if followers_json != None:
         return Response(followers_json, mimetype='application/json', status=200)
     else:

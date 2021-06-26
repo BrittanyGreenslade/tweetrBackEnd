@@ -20,7 +20,7 @@ def get_users(request):
     if user_id != None and user_id != "":
         # uses user_id provided above
         users = dbhelpers.run_select_statement(
-            "SELECT email, username, bio, birthdate, image_url AS imageUrl FROM users WHERE id = ?", [user_id])
+            "SELECT email, username, bio, birthdate, image_url AS imageUrl FROM users WHERE id = ?", [user_id, ])
     else:
         users = dbhelpers.run_select_statement(
             "SELECT email, username, bio, birthdate, image_url AS imageUrl FROM users", [])
@@ -79,7 +79,7 @@ def create_user(request):
         # login.user_login()
         # TODO a login here too
         user = dbhelpers.run_select_statement(
-            "SELECT id, email, username, bio, birthdate, image_url FROM users WHERE id = ?", [last_row_id])
+            "SELECT id, email, username, bio, birthdate, image_url FROM users WHERE id = ?", [last_row_id, ])
         if user != None:
             new_user_dictionary = {
                 "userId": user[0][0], "email": user[0][1], "username": user[0][2], "bio": user[0][3], "birthdate": user[0][4], "imageUrl": user[0][5]}
