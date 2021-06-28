@@ -1,9 +1,10 @@
+import hashlib
 from flask import Response
 import dbhelpers
 import traceback
 import json
 import helpers
-import login
+import hashlib
 # import mariadb
 # from datetime import date
 
@@ -49,6 +50,9 @@ def create_user(request):
         email = request.json['email']
         username = request.json['username']
         password = request.json['password']
+        salt = helpers.createSalt()
+        password = salt+password
+        password = hashlib.sha512(password.encode()).hexdigest()
         bio = request.json['bio']
         birthdate = request.json['birthdate']
         birthdate = helpers.birthdate_validity(birthdate)
@@ -61,13 +65,13 @@ def create_user(request):
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
 
-    sql = "INSERT INTO users (email, username, password, bio, birthdate"
-    params = [email, username, password, bio, birthdate]
+    sql = "INSERT INTO users (salt, email, username, password, bio, birthdate"
+    params = [salt, email, username, password, bio, birthdate]
     if image_url != None and image_url != "":
-        sql += ", image_url) VALUES (?, ?, ?, ?, ?, ?)"
+        sql += ", image_url) VALUES (?, ?, ?, ?, ?, ?, ?)"
         params.append(image_url)
     else:
-        sql += ") VALUES (?, ?, ?, ?, ?)"
+        sql += ") VALUES (?, ?, ?, ?, ?, ?)"
     user = None
     last_row_id = dbhelpers.run_insert_statement(sql, params)
     # insert statement in dbhelpers returns none so this works

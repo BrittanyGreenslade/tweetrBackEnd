@@ -15,17 +15,17 @@ def get_follows(request):
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
         follows = dbhelpers.run_select_statement(
-            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id WHERE uf.user_id = ?", [user_id, ])
+            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.follow_id FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id WHERE uf.user_id = ?", [user_id, ])
     else:
         follows = dbhelpers.run_select_statement(
-            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id", [])
+            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.follow_id FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id", [])
     if type(follows) == Response:
         return follows
     follows_dictionaries = []
     follows_json = None
     if len(follows) != 0:
         for follow in follows:
-            follows_dictionaries.append({"userId": user_id, "email": follow[0], "username": follow[1], "bio": follow[2],
+            follows_dictionaries.append({"userId": follow[5], "email": follow[0], "username": follow[1], "bio": follow[2],
                                          "birthdate": follow[3], "imageUrl": follow[4]})
         follows_json = json.dumps(follows_dictionaries, default=str)
     else:
@@ -99,14 +99,14 @@ def get_followers(request):
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
         followers = dbhelpers.run_select_statement(
-            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id WHERE uf.follow_id = ?", [user_id, ])
+            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.user_id FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id WHERE uf.follow_id = ?", [user_id, ])
     if type(followers) == Response:
         return followers
     followers_dictionaries = []
     followers_json = None
     if len(followers) != 0:
         for follower in followers:
-            followers_dictionaries.append({"userId": user_id, "email": follower[0], "username": follower[1], "bio": follower[2],
+            followers_dictionaries.append({"userId": follower[5], "email": follower[0], "username": follower[1], "bio": follower[2],
                                            "birthdate": follower[3], "imageUrl": follower[4]})
         followers_json = json.dumps(followers_dictionaries, default=str)
     else:

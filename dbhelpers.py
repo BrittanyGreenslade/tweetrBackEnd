@@ -7,6 +7,16 @@ import mariadb
 # The same comments apply to all the helper functions in here!
 
 
+# username must be unique for this
+def get_salt(email):
+    user_salt = run_select_statement(
+        "SELECT salt FROM users WHERE email = ?", [email, ])
+    if len(user_salt) == 1:
+        return user_salt[0][0]
+    else:
+        return ""
+
+
 def run_select_statement(sql, params):
     cursor = None
     conn = None

@@ -1,3 +1,4 @@
+import hashlib
 from flask import Response
 import dbhelpers
 import traceback
@@ -9,6 +10,9 @@ def user_login(request):
     try:
         email = request.json['email']
         password = request.json['password']
+        salt = dbhelpers.get_salt(email)
+        password = salt + password
+        password = hashlib.sha512(password.encode()).hexdigest()
     except KeyError:
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
@@ -48,7 +52,7 @@ def user_logout(request):
     rows = dbhelpers.run_delete_statement(
         "DELETE us FROM user_session us WHERE us.login_token = ?", [login_token])
     if type(rows) == Response:
-            return rows
+        return rows
     if rows == 1:
         return Response("Logout success", mimetype='text/plain', status=200)
     else:

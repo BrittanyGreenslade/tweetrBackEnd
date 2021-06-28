@@ -2,6 +2,8 @@ from flask import Response, request
 from datetime import date
 import dbhelpers
 # select user_id for post tweet and post tweet like
+import string
+import random
 
 
 def get_user_id(login_token):
@@ -25,6 +27,12 @@ def check_user_id(request):
         user_id = int(user_id)
     return user_id
 # check if tweet_id exists(get only)
+
+
+def createSalt():
+    letters_and_digits = string.ascii_letters + string.digits
+    result_str = ''.join(random.choice(letters_and_digits) for i in range(10))
+    return result_str
 
 
 def check_tweet_id(request):
