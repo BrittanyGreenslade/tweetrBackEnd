@@ -60,6 +60,7 @@ def post_comment(request):
         if type(last_row_id) == Response:
             return last_row_id
         if last_row_id != None:
+            # do json here (check in other if json = None)
             return Response("Comment created!", mimetype='text/plain', status=201)
         else:
             return Response("Error creating comment", mimetype='text/plain', status=401)
@@ -85,6 +86,7 @@ def edit_comment(request):
     if type(rows) == Response:
         return rows
     if rows == 1:
+        # do json here
         return Response("Comment updated!", mimetype='text/plain', status=200)
     else:
         return Response("Error updating comment", mimetype='text/plain', status=500)

@@ -36,12 +36,15 @@ def run_select_statement(sql, params):
             result = Response("Programming error",
                               mimetype='text/plain', status=500)
         except mariadb.OperationalError:
+            traceback.print_exc()
             result = Response("Operational error",
                               mimetype='text/plain', status=500)
         except mariadb.InternalError:
+            traceback.print_exc()
             result = Response("Internal server error",
                               mimetype='text/plain', status=500)
         except:
+            traceback.print_exc()
             result = Response("Something went wrong, please try again",
                               mimetype='text/plain', status=500)
         # Close the resources
@@ -79,9 +82,11 @@ def run_insert_statement(sql, params):
             result = Response("Database error",
                               mimetype='text/plain', status=500)
         except mariadb.OperationalError:
+            traceback.print_exc()
             result = Response("Operational error",
                               mimetype='text/plain', status=500)
         except mariadb.InternalError:
+            traceback.print_exc()
             result = Response("Internal server error",
                               mimetype='text/plain', status=500)
         except:
@@ -117,9 +122,11 @@ def run_delete_statement(sql, params):
             result = Response("Database error",
                               mimetype='text/plain', status=500)
         except mariadb.OperationalError:
+            traceback.print_exc()
             result = Response("Operational error",
                               mimetype='text/plain', status=500)
         except mariadb.InternalError:
+            traceback.print_exc()
             result = Response("Internal server error",
                               mimetype='text/plain', status=500)
         except:
@@ -161,10 +168,12 @@ def run_update_statement(sql, params):
                               mimetype='text/plain', status=500)
         # if something happens to connection
         except mariadb.OperationalError:
+            traceback.print_exc()
             result = Response("Operational error",
                               mimetype='text/plain', status=500)
         # if stg happens to cursor
         except mariadb.InternalError:
+            traceback.print_exc()
             result = Response("Internal server error",
                               mimetype='text/plain', status=500)
         except:

@@ -57,6 +57,7 @@ def like_comment(request):
         if type(last_row_id) == Response:
             return last_row_id
         if last_row_id != None:
+            # do json here
             return Response("Comment liked!", mimetype='text/plain', status=201)
         else:
             return Response("Error liking comment", mimetype='text/plain', status=401)

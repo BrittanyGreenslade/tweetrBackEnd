@@ -24,13 +24,13 @@ def get_tweets(request):
         return tweets
     tweet_dictionaries = []
     tweet_json = None
-    if len(tweets) != 0:
-        for tweet in tweets:
-            tweet_dictionaries.append({"userId": user_id, "tweetId": tweet[0], "username": tweet[1], "content": tweet[2],
-                                      "createdAt": tweet[3], "tweetImageUrl": tweet[4], "userImageUrl": tweet[5]})
-        tweet_json = json.dumps(tweet_dictionaries, default=str)
-    else:
-        return Response("Post data unavailable", mimetype='text/plain', status=400)
+    # if len(tweets) != 0:
+    for tweet in tweets:
+        tweet_dictionaries.append({"userId": user_id, "tweetId": tweet[0], "username": tweet[1], "content": tweet[2],
+                                   "createdAt": tweet[3], "tweetImageUrl": tweet[4], "userImageUrl": tweet[5]})
+    tweet_json = json.dumps(tweet_dictionaries, default=str)
+    # else:
+    #     return Response("Post data unavailable", mimetype='text/plain', status=400)
     if tweet_json != None:
         return Response(tweet_json, mimetype='application/json', status=200)
     else:
@@ -58,11 +58,20 @@ def post_tweet(request):
             params.append(image_url)
         else:
             sql += ") VALUES(?, ?)"
+        last_row_id = None
         last_row_id = dbhelpers.run_insert_statement(sql, params)
         if type(last_row_id) == Response:
             return last_row_id
+        tweet_dictionary = {}
+        tweet_json = None
         if last_row_id != None:
-            return Response("Post created!", mimetype='text/plain', status=201)
+            new_tweet = dbhelpers.run_select_statement(
+                "SELECT t.id, t.user_id, t.username, t.content, t.created_at, t.image_url FROM tweets t INNER JOIN user_session us ON us.user_id = t.user_id WHERE us.login_token = ?", [login_token, ])
+            if new_tweet != None:
+                tweet_dictionary = {"tweetId": new_tweet[0][0], "userId": new_tweet[0][1], "username": new_tweet[0]
+                                    [2], "content": new_tweet[0][3], "createdAt": new_tweet[0][4], "imageUrl": new_tweet[0][5]}
+                tweet_json = json.dumps(tweet_dictionary, default=str)
+            return Response(tweet_json, mimetype='application/json', status=201)
         else:
             return Response("Error creating post", mimetype='text/plain', status=401)
     else:
@@ -94,8 +103,12 @@ def edit_tweet(request):
     rows = dbhelpers.run_update_statement(sql, params)
     if type(rows) == Response:
         return rows
+    updated_tweet_dictionary = {}
+    updated_tweet_json = None
     if rows == 1:
-        return Response("Post updated!", mimetype='text/plain', status=200)
+        updated_tweet_dictionary = {"tweetId": tweet_id, "content": content}
+        udpated_tweet_json = json.dumps(updated_tweet_dictionary, default=str)
+        return Response(udpated_tweet_json, mimetype='application/json', status=200)
     else:
         return Response("Error updating post", mimetype='text/plain', status=500)
 

@@ -5,8 +5,8 @@ import traceback
 import json
 import helpers
 import hashlib
+import secrets
 # import mariadb
-# from datetime import date
 
 
 def get_users(request):
@@ -80,13 +80,21 @@ def create_user(request):
     if type(last_row_id) == Response:
         return last_row_id
     if last_row_id != None:
-        # login.user_login()
-        # TODO a login here too
-        user = dbhelpers.run_select_statement(
-            "SELECT id, email, username, bio, birthdate, image_url FROM users WHERE id = ?", [last_row_id, ])
-        if user != None:
+        login_token = secrets.token_urlsafe(60)
+        session_id = dbhelpers.run_insert_statement(
+            "INSERT INTO user_session(login_token, user_id) VALUES(?, ?)", [login_token, last_row_id])
+        if type(session_id) == Response:
+            return session_id
+        if session_id != None:
+            user = dbhelpers.run_select_statement(
+                "SELECT u.id, u.email, u.username, u.bio, u.birthdate, u.image_url FROM users u WHERE u.id = ?", [last_row_id, ])
+        if type(user) == Response:
+            return user
+        new_user_dictionary = {}
+        new_user_json = None
+        if user != None and len(user) == 1:
             new_user_dictionary = {
-                "userId": user[0][0], "email": user[0][1], "username": user[0][2], "bio": user[0][3], "birthdate": user[0][4], "imageUrl": user[0][5]}
+                "userId": user[0][0], "email": user[0][1], "username": user[0][2], "bio": user[0][3], "birthdate": user[0][4], "imageUrl": user[0][5], "loginToken": login_token}
             new_user_json = json.dumps(new_user_dictionary, default=str)
             return Response(new_user_json, mimetype='application/json', status=201)
         else:
@@ -143,8 +151,22 @@ def update_user(request):
             rows = dbhelpers.run_update_statement(sql, params)
             if type(rows) == Response:
                 return rows
+            updated_user_dictionary = {}
+            updated_user_json = None
             if rows == 1:
-                return Response("User information updated!", mimetype='text/plain', status=200)
+                updated_user = dbhelpers.run_select_statement(
+                    "SELECT u.id, u.email, u.username, u.bio, u.birthdate, u.image_url FROM users u INNER JOIN user_session us ON u.id = us.user_id WHERE login_token = ?"[login_token, ])
+                if type(updated_user) == Response:
+                    return updated_user
+                if len(updated_user) != 0:
+                    updated_user_dictionary = {
+                        "userId": updated_user[0][0], "email": updated_user[0][1], "username": updated_user[0][2], "bio": updated_user[0][3], "birthdate": updated_user[0][4], "imageUrl": updated_user[0][5], "loginToken": login_token}
+                    updated_user_json = json.dumps(
+                        updated_user_dictionary, default=str)
+                    return Response(updated_user_json, mimetype='application/json', status=201)
+                else:
+                    return Response("Error fetching data", mimetype='text/plain', status=500)
+                # return Response("User information updated!", mimetype='text/plain', status=200)
             else:
                 return Response("Error updating data", mimetype='text/plain', status=500)
 

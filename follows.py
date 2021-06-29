@@ -40,6 +40,7 @@ def follow_user(request):
     try:
         login_token = request.json['loginToken']
         follow_id = int(request.json['followId'])
+        print(follow_id)
     except ValueError:
         traceback.print_exc()
         return Response("Invalid follow ID", mimetype='text/plain', status=422)

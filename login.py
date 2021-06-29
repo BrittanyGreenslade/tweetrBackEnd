@@ -14,6 +14,7 @@ def user_login(request):
         password = salt + password
         password = hashlib.sha512(password.encode()).hexdigest()
     except KeyError:
+        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
@@ -38,6 +39,7 @@ def user_login(request):
         login_json = json.dumps(login_dictionary, default=str)
         return Response(login_json, mimetype='application/json', status=201)
     else:
+        traceback.print_exc()
         return Response("Invalid login - please try again", mimetype='text/plain', status=400)
 
 
