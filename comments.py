@@ -22,6 +22,7 @@ def get_comments(request):
             "SELECT c.user_id, u.username, c.content, c.created_at, c.id, c.tweet_id FROM comments c INNER JOIN users u ON c.user_id = u.id", [])
     if type(comments) == Response:
         return comments
+    # make it so it doesn't error with 0
     elif len(comments) >= 0 and comments != None:
         comment_dictionaries = []
         for comment in comments:

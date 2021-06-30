@@ -23,6 +23,7 @@ def get_tweets(request):
             "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM tweets t INNER JOIN users u ON t.user_id = u.id", [])
     if type(tweets) == Response:
         return tweets
+    # make it so tweets doesn't error if len = 0
     elif len(tweets) >= 0 and tweets != None:
         tweet_dictionaries = []
         for tweet in tweets:
