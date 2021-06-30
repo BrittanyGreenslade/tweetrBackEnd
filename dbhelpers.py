@@ -17,6 +17,15 @@ def get_salt(email):
         return ""
 
 
+def get_salt_delete(login_token):
+    user_salt = run_select_statement(
+        "SELECT u.salt FROM users u INNER JOIN user_session us ON u.id = us.user_id WHERE us.login_token = ?", [login_token, ])
+    if len(user_salt) == 1:
+        return user_salt[0][0]
+    else:
+        return ""
+
+
 def run_select_statement(sql, params):
     cursor = None
     conn = None

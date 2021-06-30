@@ -6,7 +6,7 @@ import json
 import helpers
 import hashlib
 import secrets
-# import mariadb
+# done
 
 
 def get_users(request):
@@ -21,26 +21,25 @@ def get_users(request):
     if user_id != None and user_id != "":
         # uses user_id provided above
         users = dbhelpers.run_select_statement(
-            "SELECT email, username, bio, birthdate, image_url AS imageUrl FROM users WHERE id = ?", [user_id, ])
+            "SELECT email, username, bio, birthdate, image_url AS imageUrl, id FROM users WHERE id = ?", [user_id, ])
     else:
         users = dbhelpers.run_select_statement(
-            "SELECT email, username, bio, birthdate, image_url AS imageUrl FROM users", [])
+            "SELECT email, username, bio, birthdate, image_url AS imageUrl, id FROM users", [])
     user_dictionaries = []
-    user_json = None
+    # user_json = None
     # if there's any error in dbhelpers, it will be returned here
     if type(users) == Response:
         return users
-    if len(users) != 0:
+    # make it so users doesn't error if len = 0
+    if users != None and len(users) != 0:
         for user in users:
-            user_dictionaries.append({"userId": user_id, "email": user[0], "username": user[1],
+            user_dictionaries.append({"userId": user[5], "email": user[0], "username": user[1],
                                       "bio": user[2], "birthdate": user[3], "imageUrl": user[4]})
+            # what happens if json dumps fails?
             user_json = json.dumps(user_dictionaries, default=str)
+            return Response(user_json, mimetype='application/json', status=200)
     else:
         return Response("No user data available", mimetype='text/plain', status=400)
-    if user_json != None:
-        return Response(user_json, mimetype='application/json', status=200)
-    else:
-        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
 
 
 def create_user(request):
@@ -60,6 +59,7 @@ def create_user(request):
             return birthdate
         image_url = request.json.get('imageUrl')
     except KeyError:
+        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
@@ -72,29 +72,26 @@ def create_user(request):
         params.append(image_url)
     else:
         sql += ") VALUES (?, ?, ?, ?, ?, ?)"
-    user = None
     last_row_id = dbhelpers.run_insert_statement(sql, params)
-    # insert statement in dbhelpers returns none so this works
+    # insert statement in dbhelpers returns none so this works without pre-setting variable - b/c I return response
 #  str(type(created_user_id)) != "<class 'flask.wrappers.Response'>"
 # isinstance takes 2 args - thing to check, type to check against (maybe broken)
     if type(last_row_id) == Response:
         return last_row_id
-    if last_row_id != None:
+    elif last_row_id != None:
         login_token = secrets.token_urlsafe(60)
         session_id = dbhelpers.run_insert_statement(
             "INSERT INTO user_session(login_token, user_id) VALUES(?, ?)", [login_token, last_row_id])
         if type(session_id) == Response:
             return session_id
-        if session_id != None:
-            user = dbhelpers.run_select_statement(
-                "SELECT u.id, u.email, u.username, u.bio, u.birthdate, u.image_url FROM users u WHERE u.id = ?", [last_row_id, ])
-        if type(user) == Response:
-            return user
-        new_user_dictionary = {}
-        new_user_json = None
-        if user != None and len(user) == 1:
+        elif session_id != None:
+            #     user = dbhelpers.run_select_statement(
+            #         "SELECT u.id, u.email, u.username, u.bio, u.birthdate, u.image_url FROM users u WHERE u.id = ?", [last_row_id, ])
+            # if type(user) == Response:
+            #     return user
+            # elif user != None and len(user) == 1:
             new_user_dictionary = {
-                "userId": user[0][0], "email": user[0][1], "username": user[0][2], "bio": user[0][3], "birthdate": user[0][4], "imageUrl": user[0][5], "loginToken": login_token}
+                "userId": last_row_id, "email": email, "username": username, "bio": bio, "birthdate": birthdate, "imageUrl": image_url, "loginToken": login_token}
             new_user_json = json.dumps(new_user_dictionary, default=str)
             return Response(new_user_json, mimetype='application/json', status=201)
         else:
@@ -116,6 +113,7 @@ def update_user(request):
         login_token = request.json['loginToken']
         image_url = request.json.get('imageUrl')
     except KeyError:
+        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
@@ -123,7 +121,7 @@ def update_user(request):
 
     else:
         if email == None and username == None and password == None and bio == None and birthdate == None and image_url == None:
-            return Response("Please enter the required data", mimetype='text/plain', status=400)
+            return Response("Please update at least one field", mimetype='text/plain', status=400)
         else:
             params = []
             sql = "UPDATE users u INNER JOIN user_session us on u.id = us.user_id SET"
@@ -145,22 +143,22 @@ def update_user(request):
             if image_url != None and image_url != "":
                 sql += " u.image_url = ?,"
                 params.append(image_url)
+            # removes the last character (comma) from the SQL statement of last thing concatenated
             sql = sql[:-1]
             params.append(login_token)
             sql += " WHERE login_token = ?"
             rows = dbhelpers.run_update_statement(sql, params)
             if type(rows) == Response:
                 return rows
-            updated_user_dictionary = {}
-            updated_user_json = None
-            if rows == 1:
+            elif rows == 1:
                 updated_user = dbhelpers.run_select_statement(
-                    "SELECT u.id, u.email, u.username, u.bio, u.birthdate, u.image_url FROM users u INNER JOIN user_session us ON u.id = us.user_id WHERE login_token = ?"[login_token, ])
+                    "SELECT u.id, u.email, u.username, u.bio, u.birthdate, u.image_url FROM users u INNER JOIN user_session us ON u.id = us.user_id WHERE login_token = ?", [login_token, ])
                 if type(updated_user) == Response:
                     return updated_user
-                if len(updated_user) != 0:
+                elif updated_user != None and len(updated_user) == 1:
+
                     updated_user_dictionary = {
-                        "userId": updated_user[0][0], "email": updated_user[0][1], "username": updated_user[0][2], "bio": updated_user[0][3], "birthdate": updated_user[0][4], "imageUrl": updated_user[0][5], "loginToken": login_token}
+                        "userId": updated_user[0][0], "email": updated_user[0][1], "username": updated_user[0][2], "bio": updated_user[0][3], "birthdate": updated_user[0][4], "imageUrl": updated_user[0][5]}
                     updated_user_json = json.dumps(
                         updated_user_dictionary, default=str)
                     return Response(updated_user_json, mimetype='application/json', status=201)
@@ -173,19 +171,23 @@ def update_user(request):
 
 def delete_user(request):
     try:
-        password = request.json['password']
         login_token = request.json['loginToken']
+        password = request.json['password']
+        salt = dbhelpers.get_salt_delete(login_token)
+        password = salt + password
+        password = hashlib.sha512(password.encode()).hexdigest()
     except KeyError:
+        traceback.print_exc()
         return Response("Please enter the required data", mimetype='application/json', status=401)
     except:
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=401)
-
     rows = dbhelpers.run_delete_statement(
-        "DELETE u, us FROM users u INNER JOIN user_session us ON u.id = us.user_id WHERE us.login_token = ? AND u.password = ?", [login_token, password])
+        "DELETE u FROM users u INNER JOIN user_session us ON u.id = us.user_id WHERE us.login_token = ? AND u.password = ?", [login_token, password])
     if type(rows) == Response:
         return rows
-    if rows == 1:
+    elif rows == 1:
         return Response("User deleted!", mimetype='text/plain', status=200)
     else:
-        return Response("Please try again", mimetype='text/plain', status=500)
+        # print(rows)
+        return Response("Delete error", mimetype='text/plain', status=500)

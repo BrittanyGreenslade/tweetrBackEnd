@@ -2,6 +2,7 @@ from flask import Response
 import dbhelpers
 import traceback
 import json
+# done
 
 
 def get_follows(request):
@@ -84,8 +85,6 @@ def unfollow_user(request):
         return Response("Unfollow success!", mimetype='text/plain', status=200)
     else:
         return Response("Please try again", mimetype='text/plain', status=500)
-
-# double check this
 
 
 def get_followers(request):

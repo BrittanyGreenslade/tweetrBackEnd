@@ -50,6 +50,8 @@ def check_comment_id(request):
         comment_id = int(comment_id)
     return comment_id
 
+# how to force format of birthdate?
+
 
 def birthdate_validity(birthdate):
     if birthdate != None:

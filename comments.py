@@ -22,16 +22,12 @@ def get_comments(request):
             "SELECT c.user_id, u.username, c.content, c.created_at, c.id, c.tweet_id FROM comments c INNER JOIN users u ON c.user_id = u.id", [])
     if type(comments) == Response:
         return comments
-    comment_dictionaries = []
-    comment_json = None
-    if len(comments) != 0:
+    elif len(comments) >= 0 and comments != None:
+        comment_dictionaries = []
         for comment in comments:
-            comment_dictionaries.append({"tweetId": comment[4], "userId": comment[0], "commentId": comment[4], "username": comment[1], "content": comment[2],
+            comment_dictionaries.append({"tweetId": comment[5], "userId": comment[0], "commentId": comment[4], "username": comment[1], "content": comment[2],
                                          "createdAt": comment[3]})
         comment_json = json.dumps(comment_dictionaries, default=str)
-    else:
-        return Response("Comment data unavailable", mimetype='text/plain', status=400)
-    if comment_json != None:
         return Response(comment_json, mimetype='application/json', status=200)
     else:
         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
@@ -46,13 +42,14 @@ def post_comment(request):
         traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)
     except KeyError:
+        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     user_id = dbhelpers.run_select_statement(
         "SELECT user_id FROM user_session WHERE login_token = ?", [login_token, ])
-    if len(user_id) != 0:
+    if len(user_id) != 0 and user_id != None:
         user_id = int(user_id[0][0])
         last_row_id = dbhelpers.run_insert_statement(
             "INSERT INTO comments(user_id, content, tweet_id) VALUES(?, ?, ?)", [user_id, content, tweet_id])
