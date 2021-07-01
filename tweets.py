@@ -17,7 +17,7 @@ def get_tweets(request):
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
         tweets = dbhelpers.run_select_statement(
-            "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM tweets t INNER JOIN users u ON t.user_id = u.id WHERE t.user_id = ?", [user_id, ])
+            "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM tweets t INNER JOIN users u ON t.user_id = u.id WHERE t.user_id = ? ORDER BY t.id DESC", [user_id, ])
     else:
         tweets = dbhelpers.run_select_statement(
             "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM tweets t INNER JOIN users u ON t.user_id = u.id", [])
@@ -25,9 +25,9 @@ def get_tweets(request):
         return tweets
     elif tweets == None or tweets == "":
         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
-    # make it so tweets doesn't error if len = 0
-    elif len(tweets) == 0 and user_id != None or user_id == "":
-        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    # make it so tweets doesn't error if len = 0 - but this is a problem because tweets = 0 when no one has posted yet
+    # elif len(tweets) == 0 and user_id != None or user_id == "":
+    #     return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
     else:
         tweet_dictionaries = []
         for tweet in tweets:

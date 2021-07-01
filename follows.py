@@ -24,8 +24,8 @@ def get_follows(request):
         return follows
     elif follows == None or follows == "":
         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
-    elif len(follows) == 0 and user_id != None or user_id != "":
-        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    # elif len(follows) == 0 and user_id != None or user_id != "":
+    #     return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
     else:
         follows_dictionaries = []
         for follow in follows:
