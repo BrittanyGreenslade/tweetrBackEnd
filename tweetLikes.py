@@ -25,15 +25,17 @@ def get_tweet_likes(request):
     tweet_likes_dictionaries = []
     if type(tweets_like_info) == Response:
         return tweets_like_info
-    elif len(tweets_like_info) != 0 and tweets_like_info != None:
+    elif tweets_like_info == None or tweets_like_info == "":
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    elif len(tweets_like_info) == 0 and tweet_id != None and tweet_id != "":
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    else:
         for tweet_like_info in tweets_like_info:
             tweet_likes_dictionaries.append(
                 {"tweetId": tweet_like_info[2], "userId": tweet_like_info[0], "username": tweet_like_info[1]})
             tweet_likes_json = json.dumps(
                 tweet_likes_dictionaries, default=str)
         return Response(tweet_likes_json, mimetype='application/json', status=200)
-    else:
-        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
 
 
 def like_tweet(request):

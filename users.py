@@ -19,27 +19,28 @@ def get_users(request):
         traceback.print_exc()
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
-        # uses user_id provided above
         users = dbhelpers.run_select_statement(
             "SELECT email, username, bio, birthdate, image_url AS imageUrl, id FROM users WHERE id = ?", [user_id, ])
     else:
         users = dbhelpers.run_select_statement(
             "SELECT email, username, bio, birthdate, image_url AS imageUrl, id FROM users", [])
-    user_dictionaries = []
-    # user_json = None
     # if there's any error in dbhelpers, it will be returned here
     if type(users) == Response:
         return users
     # make it so users doesn't error if len = 0
-    if users != None and len(users) != 0:
+    elif users == None or users == "":
+        return Response("No user data available", mimetype='text/plain', status=400)
+    elif len(users) == 0 and user_id != None or user_id != "":
+        return Response("No user data available", mimetype='text/plain', status=500)
+    # users != None and len(users) >= 0
+    else:
+        user_dictionaries = []
         for user in users:
             user_dictionaries.append({"userId": user[5], "email": user[0], "username": user[1],
                                       "bio": user[2], "birthdate": user[3], "imageUrl": user[4]})
             # what happens if json dumps fails?
             user_json = json.dumps(user_dictionaries, default=str)
             return Response(user_json, mimetype='application/json', status=200)
-    else:
-        return Response("No user data available", mimetype='text/plain', status=400)
 
 
 def create_user(request):

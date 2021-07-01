@@ -23,16 +23,18 @@ def get_tweets(request):
             "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM tweets t INNER JOIN users u ON t.user_id = u.id", [])
     if type(tweets) == Response:
         return tweets
+    elif tweets == None or tweets == "":
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
     # make it so tweets doesn't error if len = 0
-    elif len(tweets) >= 0 and tweets != None:
+    elif len(tweets) == 0 and user_id != None or user_id == "":
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    else:
         tweet_dictionaries = []
         for tweet in tweets:
             tweet_dictionaries.append({"userId": user_id, "tweetId": tweet[0], "username": tweet[1], "content": tweet[2],
                                        "createdAt": tweet[3], "tweetImageUrl": tweet[4], "userImageUrl": tweet[5]})
         tweet_json = json.dumps(tweet_dictionaries, default=str)
         return Response(tweet_json, mimetype='application/json', status=200)
-    else:
-        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
 
 
 def post_tweet(request):
@@ -70,7 +72,6 @@ def post_tweet(request):
                 tweet_dictionary = {"tweetId": new_tweet[0][4], "userId": new_tweet[0][0], "username": new_tweet[0][1],
                                     "content": new_tweet[0][5], "createdAt": new_tweet[0][2], "imageUrl": new_tweet[0][3]}
                 tweet_json = json.dumps(tweet_dictionary, default=str)
-                print(tweet_json)
                 return Response(tweet_json, mimetype='application/json', status=201)
             else:
                 return Response("Sorry, something went wrong", mimetype='text/plain', status=500)

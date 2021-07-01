@@ -20,22 +20,20 @@ def get_comment_likes(request):
     else:
         comments_like_info = dbhelpers.run_select_statement(
             "SELECT cl.user_id, u.username, cl.comment_id FROM comment_likes cl INNER JOIN users u ON u.id = cl.user_id", [])
-    comment_likes_dictionaries = []
     if type(comments_like_info) == Response:
         return comments_like_info
-    comment_likes_json = None
-    if len(comments_like_info) != 0:
+    elif comments_like_info == None or comments_like_info == "":
+        return Response("No data available", mimetype='text/plain', status=400)
+    elif len(comments_like_info) == 0 and comment_id != None or comment_id != "":
+        return Response("No data available", mimetype='text/plain', status=400)
+    else:
+        comment_likes_dictionaries = []
         for comment_like_info in comments_like_info:
             comment_likes_dictionaries.append(
                 {"commentId": comment_like_info[2], "userId": comment_like_info[0], "username": comment_like_info[1]})
             comment_likes_json = json.dumps(
                 comment_likes_dictionaries, default=str)
-    else:
-        return Response("No data available", mimetype='text/plain', status=400)
-    if comment_likes_json != None:
-        return Response(comment_likes_json, mimetype='application/json', status=200)
-    else:
-        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+            return Response(comment_likes_json, mimetype='application/json', status=200)
 
 
 def like_comment(request):

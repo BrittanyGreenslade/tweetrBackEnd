@@ -22,19 +22,17 @@ def get_follows(request):
             "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.follow_id FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id", [])
     if type(follows) == Response:
         return follows
-    follows_dictionaries = []
-    follows_json = None
-    if len(follows) != 0:
+    elif follows == None or follows == "":
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    elif len(follows) == 0 and user_id != None or user_id != "":
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    else:
+        follows_dictionaries = []
         for follow in follows:
             follows_dictionaries.append({"userId": follow[5], "email": follow[0], "username": follow[1], "bio": follow[2],
                                          "birthdate": follow[3], "imageUrl": follow[4]})
         follows_json = json.dumps(follows_dictionaries, default=str)
-    else:
-        return Response("Follow data unavailable", mimetype='text/plain', status=400)
-    if follows_json != None:
         return Response(follows_json, mimetype='application/json', status=200)
-    else:
-        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
 
 
 def follow_user(request):
@@ -102,16 +100,14 @@ def get_followers(request):
             "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.user_id FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id WHERE uf.follow_id = ?", [user_id, ])
     if type(followers) == Response:
         return followers
-    followers_dictionaries = []
-    followers_json = None
-    if len(followers) != 0:
+    if followers == None and followers == "":
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    elif len(followers) == 0 and user_id != None or user_id != "":
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    else:
+        followers_dictionaries = []
         for follower in followers:
             followers_dictionaries.append({"userId": follower[5], "email": follower[0], "username": follower[1], "bio": follower[2],
                                            "birthdate": follower[3], "imageUrl": follower[4]})
         followers_json = json.dumps(followers_dictionaries, default=str)
-    else:
-        return Response("Follower data unavailable", mimetype='text/plain', status=400)
-    if followers_json != None:
         return Response(followers_json, mimetype='application/json', status=200)
-    else:
-        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
