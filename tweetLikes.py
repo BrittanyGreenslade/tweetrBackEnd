@@ -18,11 +18,10 @@ def get_tweet_likes(request):
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     if tweet_id != None and tweet_id != "":
         tweets_like_info = dbhelpers.run_select_statement(
-            "SELECT t.user_id, u.username, t.id FROM tweets t INNER JOIN users u ON u.id = t.user_id WHERE t.id = ?", [tweet_id, ])
+            "SELECT tl.user_id, u.username, tl.id FROM tweet_likes tl INNER JOIN users u ON u.id = tl.user_id WHERE tl.tweet_id = ?", [tweet_id, ])
     else:
         tweets_like_info = dbhelpers.run_select_statement(
-            "SELECT t.user_id, u.username, t.id FROM tweets t INNER JOIN users u ON u.id = t.user_id", [])
-    tweet_likes_dictionaries = []
+            "SELECT tl.user_id, u.username, tl.id FROM tweet_likes tl INNER JOIN users u ON u.id = tl.user_id", [])
     if type(tweets_like_info) == Response:
         return tweets_like_info
     elif tweets_like_info == None or tweets_like_info == "":
@@ -30,6 +29,7 @@ def get_tweet_likes(request):
     elif len(tweets_like_info) == 0 and tweet_id != None and tweet_id != "":
         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
     else:
+        tweet_likes_dictionaries = []
         for tweet_like_info in tweets_like_info:
             tweet_likes_dictionaries.append(
                 {"tweetId": tweet_like_info[2], "userId": tweet_like_info[0], "username": tweet_like_info[1]})

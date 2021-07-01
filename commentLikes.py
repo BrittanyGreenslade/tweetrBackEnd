@@ -3,6 +3,7 @@ import dbhelpers
 from flask import Response
 import json
 import helpers
+# done
 
 
 def get_comment_likes(request):
@@ -44,6 +45,7 @@ def like_comment(request):
         traceback.print_exc()
         return Response("Invalid comment ID", mimetype='text/plain', status=422)
     except KeyError:
+        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
@@ -54,7 +56,7 @@ def like_comment(request):
             "INSERT INTO comment_likes(user_id, comment_id) VALUES(?, ?)", [user_id, comment_id])
         if type(last_row_id) == Response:
             return last_row_id
-        if last_row_id != None:
+        elif last_row_id != None:
             # do json here
             return Response("Comment liked!", mimetype='text/plain', status=201)
         else:
@@ -77,7 +79,7 @@ def unlike_comment(request):
         "DELETE cl FROM comment_likes cl INNER JOIN user_session us ON cl.user_id = us.user_id WHERE cl.comment_id = ? AND us.login_token = ?", [comment_id, login_token])
     if type(rows) == Response:
         return rows
-    if rows == 1:
+    elif rows != None and rows == 1:
         return Response("Comment unliked!", mimetype='text/plain', status=200)
     else:
         return Response("Error unliking comment", mimetype='text/plain', status=500)
