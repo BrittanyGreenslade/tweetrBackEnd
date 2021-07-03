@@ -4,13 +4,13 @@ import traceback
 import json
 import helpers
 # done
+# works
 
 
 def get_tweets(request):
     try:
         user_id = helpers.check_user_id(request)
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid user ID", mimetype='text/plain', status=422)
     except:
         traceback.print_exc()
@@ -31,7 +31,7 @@ def get_tweets(request):
     else:
         tweet_dictionaries = []
         for tweet in tweets:
-            tweet_dictionaries.append({"userId": user_id, "tweetId": tweet[0], "username": tweet[1], "content": tweet[2],
+            tweet_dictionaries.append({"userId": tweet[6], "tweetId": tweet[0], "username": tweet[1], "content": tweet[2],
                                        "createdAt": tweet[3], "tweetImageUrl": tweet[4], "userImageUrl": tweet[5]})
         tweet_json = json.dumps(tweet_dictionaries, default=str)
         return Response(tweet_json, mimetype='application/json', status=200)
@@ -43,7 +43,6 @@ def post_tweet(request):
         content = request.json['content']
         image_url = request.json.get('imageUrl')
     except KeyError:
-        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
@@ -88,7 +87,6 @@ def edit_tweet(request):
         image_url = request.json.get('imageUrl')
         tweet_id = int(request.json['tweetId'])
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)
     except KeyError:
         return Response("Please enter the required data", mimetype='text/plain', status=401)
@@ -119,7 +117,6 @@ def delete_tweet(request):
         login_token = request.json['loginToken']
         tweet_id = int(request.json['tweetId'])
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)
     except KeyError:
         return Response("Please enter the required data", mimetype='text/plain', status=401)

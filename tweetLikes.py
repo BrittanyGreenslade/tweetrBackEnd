@@ -5,13 +5,13 @@ import json
 import helpers
 
 # done
+# works
 
 
 def get_tweet_likes(request):
     try:
         tweet_id = helpers.check_tweet_id(request)
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)
     except:
         traceback.print_exc()
@@ -26,15 +26,15 @@ def get_tweet_likes(request):
         return tweets_like_info
     elif tweets_like_info == None or tweets_like_info == "":
         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
-    elif len(tweets_like_info) == 0 and tweet_id != None and tweet_id != "":
-        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    # elif len(tweets_like_info) == 0 and tweet_id != None and tweet_id != "":
+    #     return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
     else:
         tweet_likes_dictionaries = []
         for tweet_like_info in tweets_like_info:
             tweet_likes_dictionaries.append(
                 {"tweetId": tweet_like_info[2], "userId": tweet_like_info[0], "username": tweet_like_info[1]})
-            tweet_likes_json = json.dumps(
-                tweet_likes_dictionaries, default=str)
+        tweet_likes_json = json.dumps(
+            tweet_likes_dictionaries, default=str)
         return Response(tweet_likes_json, mimetype='application/json', status=200)
 
 
@@ -43,10 +43,8 @@ def like_tweet(request):
         login_token = request.json['loginToken']
         tweet_id = int(request.json['tweetId'])
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)
     except KeyError:
-        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
@@ -70,7 +68,6 @@ def unlike_tweet(request):
         login_token = request.json['loginToken']
         tweet_id = int(request.json['tweetId'])
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)
     except:
         traceback.print_exc()

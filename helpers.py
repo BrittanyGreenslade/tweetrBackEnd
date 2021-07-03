@@ -54,11 +54,11 @@ def check_comment_id(request):
 
 
 def birthdate_validity(birthdate):
-    if birthdate != None:
-        birthdate = date.fromisoformat(birthdate)
-        if birthdate <= date.fromisoformat("1900-01-01") or birthdate >= date.today():
-            result = Response("Invalid birthdate input",
-                              mimetype='text/plain', status=400)
-        else:
-            result = birthdate
+    # if birthdate != None:
+    birthdate = date.fromisoformat(birthdate)
+    if birthdate <= date.fromisoformat("1900-01-01") or birthdate >= date.today():
+        result = Response("Invalid birthdate input",
+                          mimetype='text/plain', status=400)
+    else:
+        result = birthdate
     return result

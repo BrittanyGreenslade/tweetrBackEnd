@@ -5,6 +5,7 @@ import traceback
 import json
 import secrets
 # done
+# works
 
 
 def user_login(request):
@@ -15,17 +16,16 @@ def user_login(request):
         password = salt + password
         password = hashlib.sha512(password.encode()).hexdigest()
     except KeyError:
-        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     user = dbhelpers.run_select_statement(
         "SELECT u.id, u.username, u.bio, u.birthdate, u.image_url, u.email FROM users u WHERE u.password = ? and u.email = ?", [password, email])
+    login_id = None
     if type(user) == Response:
         return user
     elif user != None and len(user) == 1:
-        login_id = None
         user_id = int(user[0][0])
         login_token = secrets.token_urlsafe(60)
         login_id = dbhelpers.run_insert_statement(
@@ -39,7 +39,6 @@ def user_login(request):
         login_json = json.dumps(login_dictionary, default=str)
         return Response(login_json, mimetype='application/json', status=201)
     else:
-        traceback.print_exc()
         return Response("Invalid login - please try again", mimetype='text/plain', status=400)
 
 
@@ -47,7 +46,6 @@ def user_logout(request):
     try:
         login_token = request.json['loginToken']
     except KeyError:
-        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()

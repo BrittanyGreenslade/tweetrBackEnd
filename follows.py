@@ -3,23 +3,23 @@ import dbhelpers
 import traceback
 import json
 # done
+# works
 
 
 def get_follows(request):
     try:
         user_id = int(request.args['userId'])
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid user ID", mimetype='text/plain', status=422)
     except:
         traceback.print_exc()
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
         follows = dbhelpers.run_select_statement(
-            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.follow_id FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id WHERE uf.user_id = ?", [user_id, ])
+            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.follow_id FROM user_follows uf INNER JOIN users u ON uf.follow_id = u.id WHERE uf.user_id = ?", [user_id, ])
     else:
         follows = dbhelpers.run_select_statement(
-            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.follow_id FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id", [])
+            "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.follow_id FROM user_follows uf INNER JOIN users u ON uf.follow_id = u.id", [])
     if type(follows) == Response:
         return follows
     elif follows == None or follows == "":
@@ -39,9 +39,7 @@ def follow_user(request):
     try:
         login_token = request.json['loginToken']
         follow_id = int(request.json['followId'])
-        print(follow_id)
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid follow ID", mimetype='text/plain', status=422)
     except KeyError:
         return Response("Please enter the required data", mimetype='text/plain', status=401)
@@ -69,7 +67,6 @@ def unfollow_user(request):
         login_token = request.json['loginToken']
         follow_id = int(request.json['followId'])
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid follow ID", mimetype='text/plain', status=422)
     except KeyError:
         return Response("Please enter the required data", mimetype='text/plain', status=401)
@@ -90,7 +87,6 @@ def get_followers(request):
     try:
         user_id = int(request.args['userId'])
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid user ID", mimetype='text/plain', status=422)
     except:
         traceback.print_exc()
@@ -102,7 +98,7 @@ def get_followers(request):
         return followers
     if followers == None and followers == "":
         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
-    elif len(followers) == 0 and user_id != None or user_id != "":
+    elif len(followers) == 0 and (user_id != None or user_id != ""):
         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
     else:
         followers_dictionaries = []

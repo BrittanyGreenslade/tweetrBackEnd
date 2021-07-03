@@ -7,40 +7,39 @@ import helpers
 import hashlib
 import secrets
 # done
+# works
 
 
 def get_users(request):
     try:
         user_id = helpers.check_user_id(request)
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid user ID", mimetype='text/plain', status=422)
     except:
         traceback.print_exc()
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
         users = dbhelpers.run_select_statement(
-            "SELECT email, username, bio, birthdate, image_url AS imageUrl, id FROM users WHERE id = ?", [user_id, ])
+            "SELECT email, username, bio, birthdate, image_url, id FROM users WHERE id = ?", [user_id, ])
     else:
         users = dbhelpers.run_select_statement(
-            "SELECT email, username, bio, birthdate, image_url AS imageUrl, id FROM users", [])
+            "SELECT email, username, bio, birthdate, image_url, id FROM users", [])
     # if there's any error in dbhelpers, it will be returned here
     if type(users) == Response:
         return users
     # make it so users doesn't error if len = 0
     elif users == None or users == "":
         return Response("No user data available", mimetype='text/plain', status=400)
-    elif len(users) == 0 and user_id != None or user_id != "":
+    elif len(users) == 0 and (user_id != None or user_id != ""):
         return Response("No user data available", mimetype='text/plain', status=500)
     # users != None and len(users) >= 0
     else:
         user_dictionaries = []
         for user in users:
-            user_dictionaries.append({"userId": user[5], "email": user[0], "username": user[1],
-                                      "bio": user[2], "birthdate": user[3], "imageUrl": user[4]})
-            # what happens if json dumps fails?
-            user_json = json.dumps(user_dictionaries, default=str)
-            return Response(user_json, mimetype='application/json', status=200)
+            user_dictionaries.append(
+                {"userId": user[5], "email": user[0], "username": user[1], "bio": user[2], "birthdate": user[3], "imageUrl": user[4]})
+        user_json = json.dumps(user_dictionaries, default=str)
+        return Response(user_json, mimetype='application/json', status=200)
 
 
 def create_user(request):
@@ -60,7 +59,6 @@ def create_user(request):
             return birthdate
         image_url = request.json.get('imageUrl')
     except KeyError:
-        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
@@ -106,15 +104,19 @@ def update_user(request):
         email = request.json.get('email')
         username = request.json.get('username')
         password = request.json.get('password')
+        salt = helpers.createSalt()
+        password = salt+password
+        password = hashlib.sha512(password.encode()).hexdigest()
         bio = request.json.get('bio')
         birthdate = request.json.get('birthdate')
-        birthdate = helpers.birthdate_validity(birthdate)
-        if type(birthdate) == Response:
-            return birthdate
+        if birthdate != None and birthdate != "":
+            birthdate = helpers.birthdate_validity(birthdate)
+            if type(birthdate) == Response:
+                return birthdate
+
         login_token = request.json['loginToken']
         image_url = request.json.get('imageUrl')
     except KeyError:
-        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
@@ -144,6 +146,9 @@ def update_user(request):
             if image_url != None and image_url != "":
                 sql += " u.image_url = ?,"
                 params.append(image_url)
+            if salt != None and salt != "":
+                sql += "u.salt = ?,"
+                params.append(salt)
             # removes the last character (comma) from the SQL statement of last thing concatenated
             sql = sql[:-1]
             params.append(login_token)
@@ -178,7 +183,6 @@ def delete_user(request):
         password = salt + password
         password = hashlib.sha512(password.encode()).hexdigest()
     except KeyError:
-        traceback.print_exc()
         return Response("Please enter the required data", mimetype='application/json', status=401)
     except:
         traceback.print_exc()
@@ -190,5 +194,4 @@ def delete_user(request):
     elif rows == 1:
         return Response("User deleted!", mimetype='text/plain', status=200)
     else:
-        # print(rows)
         return Response("Delete error", mimetype='text/plain', status=500)

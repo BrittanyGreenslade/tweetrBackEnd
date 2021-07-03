@@ -10,7 +10,6 @@ def get_comments(request):
     try:
         tweet_id = helpers.check_tweet_id(request)
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)
     except:
         traceback.print_exc()
@@ -18,15 +17,15 @@ def get_comments(request):
     if tweet_id != None and tweet_id != "":
         comments = dbhelpers.run_select_statement(
             "SELECT c.user_id, u.username, c.content, c.created_at, c.id, c.tweet_id FROM comments c INNER JOIN users u ON c.user_id = u.id WHERE c.tweet_id = ?", [tweet_id, ])
-    else:
-        comments = dbhelpers.run_select_statement(
-            "SELECT c.user_id, u.username, c.content, c.created_at, c.id, c.tweet_id FROM comments c INNER JOIN users u ON c.user_id = u.id", [])
+    # else:
+    #     comments = dbhelpers.run_select_statement(
+    #         "SELECT c.user_id, u.username, c.content, c.created_at, c.id, c.tweet_id FROM comments c INNER JOIN users u ON c.user_id = u.id", [])
     if type(comments) == Response:
         return comments
     elif comments == None or comments == "":
         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
-    elif len(comments) == 0 and tweet_id != None or tweet_id != "":
-        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    # elif len(comments) == 0 and (tweet_id != None or tweet_id != ""):
+    #     return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
     else:
         comment_dictionaries = []
         for comment in comments:
@@ -42,10 +41,8 @@ def post_comment(request):
         content = request.json['content']
         tweet_id = int(request.json['tweetId'])
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid tweet ID", mimetype='text/plain', status=422)
     except KeyError:
-        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
@@ -60,12 +57,12 @@ def post_comment(request):
             return last_row_id
         elif last_row_id != None:
             new_comment = dbhelpers.run_select_statement(
-                "SELECT c.id, c.tweet_id, c. user_id, c.username, c.content, c.created_at FROM comments c WHERE c.id = ?", [last_row_id])
+                "SELECT c.id, c.tweet_id, c. user_id, u.username, c.content, c.created_at FROM comments c INNER JOIN users u ON u.id = c.user_id WHERE c.id = ?", [last_row_id])
         if type(new_comment) == Response:
             return new_comment
         elif new_comment != None and len(new_comment) == 1:
             new_comment_dictionary = {"commentId": new_comment[0][0], "tweetId": new_comment[0][1],
-                                      "userId": new_comment[0][2], "username": new_comment[0][3], "content": [0][4], "createdAt": [0][5]}
+                                      "userId": new_comment[0][2], "username": new_comment[0][3], "content": new_comment[0][4], "createdAt": new_comment[0][5]}
             new_comment_json = json.dumps(
                 new_comment_dictionary, default=str)
             return Response(new_comment_json, mimetype='application/json', status=201)
@@ -81,10 +78,8 @@ def edit_comment(request):
         content = request.json['content']
         comment_id = int(request.json['commentId'])
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid comment ID", mimetype='text/plain', status=422)
     except KeyError:
-        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
@@ -96,10 +91,9 @@ def edit_comment(request):
     if rows != None and rows == 1:
         updated_row = dbhelpers.run_select_statement(
             "SELECT c.tweet_id, c.user_id, u.username, c.created_at FROM comments c INNER JOIN users u ON u.id = c.user_id INNER JOIN user_session us ON c.user_id = us.user_id WHERE us.login_token = ? and c.id = ?", [login_token, comment_id])
-        print(updated_row)
         # do json here
-        updated_comment_dictionary = {"commentId": comment_id, "tweetId": updated_row[0][0], "userId": [
-            0][1], "username": [0][2], "content": content, "createdAt": [0][3]}
+        updated_comment_dictionary = {"commentId": comment_id, "tweetId": updated_row[0][0], "userId": updated_row[
+            0][1], "username": updated_row[0][2], "content": content, "createdAt": updated_row[0][3]}
         updated_comment_json = json.dumps(
             updated_comment_dictionary, default=str)
         return Response(updated_comment_json, mimetype='application/json', status=201)
@@ -112,10 +106,8 @@ def delete_comment(request):
         login_token = request.json['loginToken']
         comment_id = int(request.json['commentId'])
     except ValueError:
-        traceback.print_exc()
         return Response("Invalid comment ID", mimetype='text/plain', status=422)
     except KeyError:
-        traceback.print_exc()
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
