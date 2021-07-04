@@ -1,4 +1,5 @@
 from flask import Response
+from werkzeug.datastructures import Headers
 import dbhelpers
 import traceback
 import json
@@ -17,10 +18,10 @@ def get_tweets(request):
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if user_id != None and user_id != "":
         tweets = dbhelpers.run_select_statement(
-            "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM tweets t INNER JOIN users u ON t.user_id = u.id WHERE t.user_id = ? ORDER BY t.id DESC", [user_id, ])
+            "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM tweets t INNER JOIN users u ON t.user_id = u.id WHERE t.user_id = ? ORDER BY t.created_at DESC", [user_id, ])
     else:
         tweets = dbhelpers.run_select_statement(
-            "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM tweets t INNER JOIN users u ON t.user_id = u.id", [])
+            "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM tweets t INNER JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC", [])
     if type(tweets) == Response:
         return tweets
     elif tweets == None or tweets == "":
@@ -130,3 +131,28 @@ def delete_tweet(request):
         return Response("Tweet deleted!", mimetype='text/plain', status=200)
     else:
         return Response("Please try again", mimetype='text/plain', status=500)
+
+
+def following_tweets(request):
+    try:
+        # has to be request.headers or it'll show up in the url
+        # send headers instead in axr
+        login_token = request.headers['loginToken']
+    except KeyError:
+        return Response("Please enter the required data", mimetype='text/plain', status=401)
+    except:
+        traceback.print_exc()
+    following_tweets = None
+    following_tweets = dbhelpers.run_select_statement(
+        "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM user_follows uf INNER JOIN user_session us ON us.user_id = uf.user_id INNER JOIN tweets t ON t.user_id = uf.follow_id INNER JOIN users u ON u.id = t.user_id WHERE us.login_token = ? ORDER BY t.created_at DESC LIMIT 100", [login_token])
+    if type(following_tweets) == Response:
+        return following_tweets
+    elif following_tweets == None or following_tweets == "":
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+    else:
+        tweet_dictionaries = []
+        for tweet in following_tweets:
+            tweet_dictionaries.append({"userId": tweet[6], "tweetId": tweet[0], "username": tweet[1], "content": tweet[2],
+                                       "createdAt": tweet[3], "tweetImageUrl": tweet[4], "userImageUrl": tweet[5]})
+        tweet_json = json.dumps(tweet_dictionaries, default=str)
+        return Response(tweet_json, mimetype='application/json', status=200)

@@ -6,7 +6,7 @@ import json
 # works
 
 
-def get_follows(request):
+def get_following(request):
     try:
         user_id = int(request.args['userId'])
     except ValueError:

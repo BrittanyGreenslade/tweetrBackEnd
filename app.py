@@ -60,6 +60,11 @@ def edit_tweet():
     return tweets.edit_tweet(request)
 
 
+@app.get("/api/followingTweets")
+def following_tweets():
+    return tweets.following_tweets(request)
+
+
 @app.delete("/api/tweets")
 def delete_tweet():
     return tweets.delete_tweet(request)
@@ -116,8 +121,8 @@ def unlike_comment():
 
 
 @app.get("/api/follows")
-def get_follows():
-    return follows.get_follows(request)
+def get_following():
+    return follows.get_following(request)
 
 
 @app.post("/api/follows")
