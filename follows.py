@@ -51,7 +51,15 @@ def follow_user(request):
         if type(last_row_id) == Response:
             return last_row_id
         if last_row_id != None:
-            return Response("Follow success!", mimetype='text/plain', status=201)
+            new_follow = dbhelpers.run_select_statement(
+                "SELECT uf.follow_id, u.username, u.email, u.bio, u.birthdate, u.image_url FROM user_follows uf INNER JOIN users u ON u.id = uf.follow_id WHERE uf.id = ?", [last_row_id])
+            if type(new_follow) == Response:
+                return new_follow
+            if new_follow != None and len(new_follow) == 1:
+                follow_dictionary = {"userId": new_follow[0][0], "username": new_follow[0][1], "email": new_follow[0][2],
+                                     "bio": new_follow[0][3], "birthdate": new_follow[0][4], "imageUrl": new_follow[0][5]}
+                follow_json = json.dumps(follow_dictionary, default=str)
+                return Response(follow_json, mimetype='application/json', status=201)
         else:
             return Response("Error following user", mimetype='text/plain', status=401)
     else:
