@@ -1,7 +1,6 @@
 from flask import Response, request
 from datetime import date
 import dbhelpers
-# select user_id for post tweet and post tweet like
 import string
 import random
 
@@ -14,19 +13,18 @@ def get_user_id(login_token):
     else:
         user_id = None
     return user_id
-# check if user_id exists (get only)
+# check if user_id exists (get/args only)
 
 
 def check_user_id(request):
     # .get returns none if key not provided
     # but this doesn't allow for the key being spelled wrong/keyError
-    # problem here b/c need 'none' and !=none for select
     # this will be an error that the client deals with when the're not getting the right return
     user_id = request.args.get('userId')
     if user_id != None:
         user_id = int(user_id)
     return user_id
-# check if tweet_id exists(get only)
+# check if tweet_id exists(get/args only)
 
 
 def createSalt():
@@ -41,7 +39,7 @@ def check_tweet_id(request):
         tweet_id = int(tweet_id)
     return tweet_id
 
-# check if comment_id exists(get only)
+# check if comment_id exists(get/args only)
 
 
 def check_comment_id(request):
@@ -50,11 +48,8 @@ def check_comment_id(request):
         comment_id = int(comment_id)
     return comment_id
 
-# how to force format of birthdate?
-
 
 def birthdate_validity(birthdate):
-    # if birthdate != None:
     birthdate = date.fromisoformat(birthdate)
     if birthdate <= date.fromisoformat("1900-01-01") or birthdate >= date.today():
         result = Response("Invalid birthdate input",

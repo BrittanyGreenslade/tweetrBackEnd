@@ -6,8 +6,6 @@ import json
 import helpers
 import hashlib
 import secrets
-# done
-# works
 
 
 def get_users(request):
@@ -32,7 +30,6 @@ def get_users(request):
         return Response("No user data available", mimetype='text/plain', status=400)
     elif len(users) == 0 and (user_id != None or user_id != ""):
         return Response("No user data available", mimetype='text/plain', status=500)
-    # users != None and len(users) >= 0
     else:
         user_dictionaries = []
         for user in users:
@@ -72,7 +69,7 @@ def create_user(request):
     else:
         sql += ") VALUES (?, ?, ?, ?, ?, ?)"
     last_row_id = dbhelpers.run_insert_statement(sql, params)
-    # insert statement in dbhelpers returns none so this works without pre-setting variable - b/c I return response
+# insert statement in dbhelpers returns none so this works without pre-setting variable - b/c I return response
 #  str(type(created_user_id)) != "<class 'flask.wrappers.Response'>"
 # isinstance takes 2 args - thing to check, type to check against (maybe broken)
     if type(last_row_id) == Response:
@@ -84,11 +81,6 @@ def create_user(request):
         if type(session_id) == Response:
             return session_id
         elif session_id != None:
-            #     user = dbhelpers.run_select_statement(
-            #         "SELECT u.id, u.email, u.username, u.bio, u.birthdate, u.image_url FROM users u WHERE u.id = ?", [last_row_id, ])
-            # if type(user) == Response:
-            #     return user
-            # elif user != None and len(user) == 1:
             new_user_dictionary = {
                 "userId": last_row_id, "email": email, "username": username, "bio": bio, "birthdate": birthdate, "imageUrl": image_url, "loginToken": login_token}
             new_user_json = json.dumps(new_user_dictionary, default=str)
@@ -170,7 +162,6 @@ def update_user(request):
                     return Response(updated_user_json, mimetype='application/json', status=201)
                 else:
                     return Response("Error fetching data", mimetype='text/plain', status=500)
-                # return Response("User information updated!", mimetype='text/plain', status=200)
             else:
                 return Response("Error updating data", mimetype='text/plain', status=500)
 

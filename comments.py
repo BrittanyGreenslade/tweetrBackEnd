@@ -3,7 +3,6 @@ import dbhelpers
 import traceback
 import json
 import helpers
-# done
 
 
 def get_comments(request):
@@ -17,15 +16,10 @@ def get_comments(request):
     if tweet_id != None and tweet_id != "":
         comments = dbhelpers.run_select_statement(
             "SELECT c.user_id, u.username, c.content, c.created_at, c.id, c.tweet_id FROM comments c INNER JOIN users u ON c.user_id = u.id WHERE c.tweet_id = ?", [tweet_id, ])
-    # else:
-    #     comments = dbhelpers.run_select_statement(
-    #         "SELECT c.user_id, u.username, c.content, c.created_at, c.id, c.tweet_id FROM comments c INNER JOIN users u ON c.user_id = u.id", [])
     if type(comments) == Response:
         return comments
     elif comments == None or comments == "":
         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
-    # elif len(comments) == 0 and (tweet_id != None or tweet_id != ""):
-    #     return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
     else:
         comment_dictionaries = []
         for comment in comments:
@@ -91,7 +85,6 @@ def edit_comment(request):
     if rows != None and rows == 1:
         updated_row = dbhelpers.run_select_statement(
             "SELECT c.tweet_id, c.user_id, u.username, c.created_at FROM comments c INNER JOIN users u ON u.id = c.user_id INNER JOIN user_session us ON c.user_id = us.user_id WHERE us.login_token = ? and c.id = ?", [login_token, comment_id])
-        # do json here
         updated_comment_dictionary = {"commentId": comment_id, "tweetId": updated_row[0][0], "userId": updated_row[
             0][1], "username": updated_row[0][2], "content": content, "createdAt": updated_row[0][3]}
         updated_comment_json = json.dumps(

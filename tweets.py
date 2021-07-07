@@ -4,8 +4,6 @@ import dbhelpers
 import traceback
 import json
 import helpers
-# done
-# works
 
 
 def get_tweets(request):
@@ -26,9 +24,6 @@ def get_tweets(request):
         return tweets
     elif tweets == None or tweets == "":
         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
-    # make it so tweets doesn't error if len = 0 - but this is a problem because tweets = 0 when no one has posted yet
-    # elif len(tweets) == 0 and user_id != None or user_id == "":
-    #     return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
     else:
         tweet_dictionaries = []
         for tweet in tweets:

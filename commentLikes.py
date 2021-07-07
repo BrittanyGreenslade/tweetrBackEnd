@@ -3,7 +3,6 @@ import dbhelpers
 from flask import Response
 import json
 import helpers
-# done
 
 
 def get_comment_likes(request):
@@ -24,8 +23,6 @@ def get_comment_likes(request):
         return comments_like_info
     elif comments_like_info == None or comments_like_info == "":
         return Response("No data available", mimetype='text/plain', status=400)
-    # elif len(comments_like_info) == 0 and (comment_id != None or comment_id != ""):
-    #     return Response("No data available", mimetype='text/plain', status=500)
     else:
         comment_likes_dictionaries = []
         for comment_like_info in comments_like_info:
@@ -54,8 +51,16 @@ def like_comment(request):
         if type(last_row_id) == Response:
             return last_row_id
         elif last_row_id != None:
-            # do json here
-            return Response("Comment liked!", mimetype='text/plain', status=201)
+            comment_like_info = dbhelpers.run_select_statement(
+                "SELECT cl.user_id, cl.comment_id, u.username FROM comment_likes cl INNER JOIN users u ON cl.user_id = u.id WHERE cl.id = ?", [last_row_id])
+            if type(comment_like_info) == Response:
+                return comment_like_info
+            if comment_like_info != None and len(comment_like_info) == 1:
+                comment_like_dictionary = {
+                    "userId": comment_like_info[0][0], "commenttId": comment_like_info[0][1], "username": comment_like_info[0][2]}
+                comment_like_json = json.dumps(
+                    comment_like_dictionary, default=str)
+                return Response(comment_like_json, mimetype='application/json', status=201)
         else:
             return Response("Error liking comment", mimetype='text/plain', status=401)
     else:

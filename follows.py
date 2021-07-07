@@ -2,8 +2,6 @@ from flask import Response
 import dbhelpers
 import traceback
 import json
-# done
-# works
 
 
 def get_following(request):
@@ -24,8 +22,6 @@ def get_following(request):
         return follows
     elif follows == None or follows == "":
         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
-    # elif len(follows) == 0 and user_id != None or user_id != "":
-    #     return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
     else:
         follows_dictionaries = []
         for follow in follows:

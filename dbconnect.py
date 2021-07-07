@@ -5,8 +5,6 @@ import dbcreds
 import traceback
 # https://thepythonguru.com/handling-errors/
 
-# dberror/operational/internal
-
 
 def get_db_connection():
     # Create our connection to the DB and return it

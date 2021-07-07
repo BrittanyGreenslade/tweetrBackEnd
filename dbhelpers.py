@@ -2,12 +2,11 @@
 import dbconnect
 import traceback
 from flask import Response
-# import json
 import mariadb
 # The same comments apply to all the helper functions in here!
 
 
-# username must be unique for this
+# email must be unique for this
 def get_salt(email):
     user_salt = run_select_statement(
         "SELECT salt FROM users WHERE email = ?", [email, ])

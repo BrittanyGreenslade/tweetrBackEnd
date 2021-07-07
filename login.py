@@ -4,8 +4,6 @@ import dbhelpers
 import traceback
 import json
 import secrets
-# done
-# works
 
 
 def user_login(request):
