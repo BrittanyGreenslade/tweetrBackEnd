@@ -124,8 +124,6 @@ def unlike_comment():
 def get_following():
     # sends the string 'follow_id' and 'user_id' to be used in the SQL statements
     # NGL I borrowed this idea from Ramona's code that they showed during class (but made sense of it first)
-    # I'm blown away that you can send just strings as arguments honestly
-    # My life up until this point has been a lie
     return follows.get_follows(request, 'follow_id', 'user_id')
 
 

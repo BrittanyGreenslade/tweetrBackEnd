@@ -45,7 +45,10 @@ def like_comment(request):
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     user_id = helpers.get_user_id(login_token)
+    if type(user_id) == Response:
+        return user_id
     if user_id != None and user_id != "":
+        user_id = int(user_id[0][0])
         last_row_id = dbhelpers.run_insert_statement(
             "INSERT INTO comment_likes(user_id, comment_id) VALUES(?, ?)", [user_id, comment_id])
         if type(last_row_id) == Response:

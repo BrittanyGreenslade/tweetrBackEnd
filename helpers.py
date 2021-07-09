@@ -8,8 +8,6 @@ import random
 def get_user_id(login_token):
     user_id = dbhelpers.run_select_statement(
         "SELECT user_id FROM user_session WHERE login_token = ?", [login_token])
-    if user_id != None:
-        user_id = int(user_id[0][0])
     return user_id
 
 # id_one different in select for post/get users so needed it to be {}

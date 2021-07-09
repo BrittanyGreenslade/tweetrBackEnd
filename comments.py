@@ -41,7 +41,9 @@ def post_comment(request):
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     user_id = helpers.get_user_id(login_token)
-    if len(user_id) != 0 and user_id != None:
+    if type(user_id) == Response:
+        return user_id
+    elif len(user_id) != 0 and user_id != None:
         user_id = int(user_id[0][0])
         last_row_id = dbhelpers.run_insert_statement(
             "INSERT INTO comments(user_id, content, tweet_id) VALUES(?, ?, ?)", [user_id, content, tweet_id])
