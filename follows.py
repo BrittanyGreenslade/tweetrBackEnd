@@ -2,32 +2,7 @@ from flask import Response
 import dbhelpers
 import traceback
 import json
-
-
-# def get_following(request):
-#     try:
-#         user_id = int(request.args['userId'])
-#     except KeyError:
-#         return Response("Please enter the required data", mimetype='text/plain', status=401)
-#     except ValueError:
-#         return Response("Invalid user ID", mimetype='text/plain', status=422)
-#     except:
-#         traceback.print_exc()
-#         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
-#     if user_id != None and user_id != "":
-#         follows = dbhelpers.run_select_statement(
-#             "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.follow_id FROM user_follows uf INNER JOIN users u ON uf.follow_id = u.id WHERE uf.user_id = ?", [user_id, ])
-#     if type(follows) == Response:
-#         return follows
-#     elif follows == None or follows == "":
-#         return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
-#     else:
-#         follows_dictionaries = []
-#         for follow in follows:
-#             follows_dictionaries.append({"userId": follow[5], "email": follow[0], "username": follow[1], "bio": follow[2],
-#                                          "birthdate": follow[3], "imageUrl": follow[4]})
-#         follows_json = json.dumps(follows_dictionaries, default=str)
-#         return Response(follows_json, mimetype='application/json', status=200)
+import helpers
 
 
 def get_follows(request, id_one, id_two):
@@ -42,20 +17,13 @@ def get_follows(request, id_one, id_two):
     except:
         traceback.print_exc()
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
-    # user Id will error if not input
     # follows
-    # formatted string that will take in arguments (the follow id and user id), and depending
+    # formatted string that will take in 3 arguments (incl. follow id and user id), and depending
     # which is passed first, will determine whether we get followers or following users.
     # if user id is first arg, follow id second, means we're getting followers
     # if follow id is first arg (i.e what users is joined on), user id second, means we're getting following
-    follows = dbhelpers.run_select_statement(
-        f"SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.user_id FROM user_follows uf INNER JOIN users u ON uf.{id_one} = u.id WHERE uf.{id_two} = ?", [user_id, ])
-    # followers
-    # follows = dbhelpers.run_select_statement(
-    #     "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.user_id FROM user_follows uf INNER JOIN users u ON uf.user_id = u.id WHERE uf.follow_id = ?", [user_id, ])
-    # following
-    # follows = dbhelpers.run_select_statement(
-    #     "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.follow_id FROM user_follows uf INNER JOIN users u ON uf.follow_id = u.id WHERE uf.user_id = ?", [user_id, ])
+    follows = helpers.select_follows(
+        user_id, 'u.id', id_one, id_two)
     if type(follows) == Response:
         return follows
     if follows == None and follows == "":
@@ -80,8 +48,7 @@ def follow_user(request):
     except:
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
-    user_id = dbhelpers.run_select_statement(
-        "SELECT user_id FROM user_session WHERE login_token = ?", [login_token, ])
+    user_id = helpers.get_user_id(login_token)
     if len(user_id) != 0:
         user_id = int(user_id[0][0])
         last_row_id = dbhelpers.run_insert_statement(
@@ -89,13 +56,15 @@ def follow_user(request):
         if type(last_row_id) == Response:
             return last_row_id
         if last_row_id != None:
-            new_follow = dbhelpers.run_select_statement(
-                "SELECT uf.follow_id, u.username, u.email, u.bio, u.birthdate, u.image_url FROM user_follows uf INNER JOIN users u ON u.id = uf.follow_id WHERE uf.id = ?", [last_row_id])
+            new_follow = helpers.select_follows(
+                last_row_id, 'follow_id', 'follow_id', 'id')
+            # new_follow = dbhelpers.run_select_statement(
+            #     "SELECT u.email, u.username, u.bio, u.birthdate, u.image_url, uf.follow_id FROM user_follows uf INNER JOIN users u ON u.id = uf.follow_id WHERE uf.id = ?", [last_row_id])
             if type(new_follow) == Response:
                 return new_follow
             if new_follow != None and len(new_follow) == 1:
-                follow_dictionary = {"userId": new_follow[0][0], "username": new_follow[0][1], "email": new_follow[0][2],
-                                     "bio": new_follow[0][3], "birthdate": new_follow[0][4], "imageUrl": new_follow[0][5]}
+                follow_dictionary = {"userId": new_follow[0][5], "username": new_follow[0][1], "email": new_follow[0][0],
+                                     "bio": new_follow[0][2], "birthdate": new_follow[0][3], "imageUrl": new_follow[0][4]}
                 follow_json = json.dumps(follow_dictionary, default=str)
                 return Response(follow_json, mimetype='application/json', status=201)
         else:

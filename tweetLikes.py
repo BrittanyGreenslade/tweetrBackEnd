@@ -14,8 +14,7 @@ def get_tweet_likes(request):
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     if tweet_id != None and tweet_id != "":
-        tweets_like_info = dbhelpers.run_select_statement(
-            "SELECT tl.user_id, u.username, tl.tweet_id FROM tweet_likes tl INNER JOIN users u ON u.id = tl.user_id WHERE tl.tweet_id = ?", [tweet_id, ])
+        tweets_like_info = helpers.select_tweet_like_info(tweet_id, 'tweet_id')
     else:
         tweets_like_info = dbhelpers.run_select_statement(
             "SELECT tl.user_id, u.username, tl.tweet_id FROM tweet_likes tl INNER JOIN users u ON u.id = tl.user_id", [])
@@ -51,13 +50,14 @@ def like_tweet(request):
         if type(last_row_id) == Response:
             return last_row_id
         elif last_row_id != None:
-            tweet_like_info = dbhelpers.run_select_statement(
-                "SELECT tl.user_id, tl.tweet_id, u.username FROM tweet_likes tl INNER JOIN users u ON tl.user_id = u.id WHERE tl.id = ?", [last_row_id])
+            tweet_like_info = helpers.select_tweet_like_info(last_row_id, 'id')
+            # tweet_like_info = dbhelpers.run_select_statement(
+            #     "SELECT tl.user_id, u.username, tl.tweet_id FROM tweet_likes tl INNER JOIN users u ON tl.user_id = u.id WHERE tl.id = ?", [last_row_id])
             if type(tweet_like_info) == Response:
                 return tweet_like_info
             if tweet_like_info != None and len(tweet_like_info) == 1:
                 tweet_like_dictionary = {
-                    "userId": tweet_like_info[0][0], "tweetId": tweet_like_info[0][1], "username": tweet_like_info[0][2]}
+                    "userId": tweet_like_info[0][0], "tweetId": tweet_like_info[0][2], "username": tweet_like_info[0][1]}
                 tweet_like_json = json.dumps(
                     tweet_like_dictionary, default=str)
                 return Response(tweet_like_json, mimetype='application/json', status=201)

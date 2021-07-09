@@ -44,9 +44,10 @@ def post_tweet(request):
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     # is actually user_id_list (careful with variable names for select)
-    user_id = dbhelpers.run_select_statement(
-        "SELECT user_id FROM user_session WHERE login_token = ?", [login_token, ])
-    if user_id != None and len(user_id) != 0:
+    user_id = helpers.get_user_id(login_token)
+    if type(user_id) == Response:
+        return user_id
+    elif user_id != None and len(user_id) != 0:
         user_id = int(user_id[0][0])
         sql = "INSERT INTO tweets(user_id, content"
         # these params are always sent
@@ -63,7 +64,7 @@ def post_tweet(request):
         # insert statement either will return none or response
         elif last_row_id != None:
             new_tweet = dbhelpers.run_select_statement(
-                "SELECT t.user_id, u.username, t.created_at, t.image_url, t.id, t.content FROM tweets t INNER JOIN users u ON u.id = t.user_id INNER JOIN user_session us ON us.user_id = t.user_id WHERE us.login_token = ? AND t.id = ?", [login_token, last_row_id])
+                "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id,FROM tweets t INNER JOIN users u ON u.id = t.user_id INNER JOIN user_session us ON us.user_id = t.user_id WHERE us.login_token = ? AND t.id = ?", [login_token, last_row_id])
             if type(new_tweet) == Response:
                 return new_tweet
             if new_tweet != None and len(new_tweet) == 1:

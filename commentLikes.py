@@ -14,8 +14,8 @@ def get_comment_likes(request):
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     if comment_id != None and comment_id != "":
-        comments_like_info = dbhelpers.run_select_statement(
-            "SELECT cl.user_id, u.username, cl.comment_id FROM comment_likes cl INNER JOIN users u ON u.id = cl.user_id WHERE cl.comment_id = ?", [comment_id, ])
+        comments_like_info = helpers.select_comment_like_info(
+            comment_id, 'comment_id')
     else:
         comments_like_info = dbhelpers.run_select_statement(
             "SELECT cl.user_id, u.username, cl.comment_id FROM comment_likes cl INNER JOIN users u ON u.id = cl.user_id", [])
@@ -51,13 +51,13 @@ def like_comment(request):
         if type(last_row_id) == Response:
             return last_row_id
         elif last_row_id != None:
-            comment_like_info = dbhelpers.run_select_statement(
-                "SELECT cl.user_id, cl.comment_id, u.username FROM comment_likes cl INNER JOIN users u ON cl.user_id = u.id WHERE cl.id = ?", [last_row_id])
+            comment_like_info = helpers.select_comment_like_info(
+                last_row_id, 'id')
             if type(comment_like_info) == Response:
                 return comment_like_info
             if comment_like_info != None and len(comment_like_info) == 1:
                 comment_like_dictionary = {
-                    "userId": comment_like_info[0][0], "commenttId": comment_like_info[0][1], "username": comment_like_info[0][2]}
+                    "userId": comment_like_info[0][0], "commentId": comment_like_info[0][2], "username": comment_like_info[0][1]}
                 comment_like_json = json.dumps(
                     comment_like_dictionary, default=str)
                 return Response(comment_like_json, mimetype='application/json', status=201)

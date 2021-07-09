@@ -14,8 +14,7 @@ def get_comments(request):
         traceback.print_exc()
         return Response("Something went wrong, please try again", mimetype='text/plain', status=422)
     if tweet_id != None and tweet_id != "":
-        comments = dbhelpers.run_select_statement(
-            "SELECT c.user_id, u.username, c.content, c.created_at, c.id, c.tweet_id FROM comments c INNER JOIN users u ON c.user_id = u.id WHERE c.tweet_id = ?", [tweet_id, ])
+        comments = helpers.select_comments(tweet_id, 'tweet_id')
     if type(comments) == Response:
         return comments
     elif comments == None or comments == "":
@@ -41,8 +40,7 @@ def post_comment(request):
     except:
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
-    user_id = dbhelpers.run_select_statement(
-        "SELECT user_id FROM user_session WHERE login_token = ?", [login_token, ])
+    user_id = helpers.get_user_id(login_token)
     if len(user_id) != 0 and user_id != None:
         user_id = int(user_id[0][0])
         last_row_id = dbhelpers.run_insert_statement(
@@ -50,13 +48,12 @@ def post_comment(request):
         if type(last_row_id) == Response:
             return last_row_id
         elif last_row_id != None:
-            new_comment = dbhelpers.run_select_statement(
-                "SELECT c.id, c.tweet_id, c. user_id, u.username, c.content, c.created_at FROM comments c INNER JOIN users u ON u.id = c.user_id WHERE c.id = ?", [last_row_id])
+            new_comment = helpers.select_comments(last_row_id, 'id')
         if type(new_comment) == Response:
             return new_comment
         elif new_comment != None and len(new_comment) == 1:
-            new_comment_dictionary = {"commentId": new_comment[0][0], "tweetId": new_comment[0][1],
-                                      "userId": new_comment[0][2], "username": new_comment[0][3], "content": new_comment[0][4], "createdAt": new_comment[0][5]}
+            new_comment_dictionary = {"commentId": new_comment[0][4], "tweetId": new_comment[0][5],
+                                      "userId": new_comment[0][0], "username": new_comment[0][1], "content": new_comment[0][2], "createdAt": new_comment[0][3]}
             new_comment_json = json.dumps(
                 new_comment_dictionary, default=str)
             return Response(new_comment_json, mimetype='application/json', status=201)
@@ -85,11 +82,16 @@ def edit_comment(request):
     if rows != None and rows == 1:
         updated_row = dbhelpers.run_select_statement(
             "SELECT c.tweet_id, c.user_id, u.username, c.created_at FROM comments c INNER JOIN users u ON u.id = c.user_id INNER JOIN user_session us ON c.user_id = us.user_id WHERE us.login_token = ? and c.id = ?", [login_token, comment_id])
-        updated_comment_dictionary = {"commentId": comment_id, "tweetId": updated_row[0][0], "userId": updated_row[
-            0][1], "username": updated_row[0][2], "content": content, "createdAt": updated_row[0][3]}
-        updated_comment_json = json.dumps(
-            updated_comment_dictionary, default=str)
-        return Response(updated_comment_json, mimetype='application/json', status=201)
+        if type(updated_row) == Response:
+            return updated_row
+        if updated_row != None and len(updated_row) == 1:
+            updated_comment_dictionary = {"commentId": comment_id, "tweetId": updated_row[0][0], "userId": updated_row[
+                0][1], "username": updated_row[0][2], "content": content, "createdAt": updated_row[0][3]}
+            updated_comment_json = json.dumps(
+                updated_comment_dictionary, default=str)
+            return Response(updated_comment_json, mimetype='application/json', status=201)
+        else:
+            return Response("Error fetching data", mimetype='text/plain', status=500)
     else:
         return Response("Error updating comment", mimetype='text/plain', status=500)
 
