@@ -12,24 +12,14 @@ def get_db_connection():
         return mariadb.connect(user=dbcreds.user, password=dbcreds.password,
                                host=dbcreds.host, port=dbcreds.port, database=dbcreds.database)
     except mariadb.OperationalError:
-        traceback.print_exc()
-        print("Operational Error")
         return None
     except mariadb.InternalError:
-        traceback.print_exc()
-        print("Internal Error")
         return None
     except mariadb.DatabaseError:
-        traceback.print_exc()
-        print("Database Error")
         return None
     except mariadb.ProgrammingError:
-        traceback.print_exc()
-        print("Programming Error")
         return None
     except:
-        print("Error connecting to DB!")
-        traceback.print_exc()
         return None
 
 
@@ -38,24 +28,14 @@ def get_db_cursor(conn):
     try:
         return conn.cursor()
     except mariadb.OperationalError:
-        traceback.print_exc()
-        print("Operational Error")
         return None
     except mariadb.InternalError:
-        traceback.print_exc()
-        print("Internal Error")
         return None
     except mariadb.ProgrammingError:
-        traceback.print_exc()
-        print("Programming Error")
         return None
     except mariadb.DatabaseError:
-        traceback.print_exc()
-        print("Database Error")
         return None
     except:
-        print("Error creating cursor on DB!")
-        traceback.print_exc()
         return None
 
 
@@ -68,24 +48,14 @@ def close_db_cursor(cursor):
         cursor.close()
         return True
     except mariadb.OperationalError:
-        traceback.print_exc()
-        print("Operational Error")
         return False
     except mariadb.InternalError:
-        traceback.print_exc()
-        print("Internal Error")
         return False
     except mariadb.ProgrammingError:
-        traceback.print_exc()
-        print("Programming Error")
         return False
     except mariadb.DatabaseError:
-        traceback.print_exc()
-        print("Database Error")
         return False
     except:
-        print("Error closing cursor on DB!")
-        traceback.print_exc()
         return False
 
 
@@ -97,22 +67,12 @@ def close_db_connection(conn):
         conn.close()
         return True
     except mariadb.OperationalError:
-        traceback.print_exc()
-        print("Operational Error")
         return False
     except mariadb.InternalError:
-        traceback.print_exc()
-        print("Internal Error")
         return False
     except mariadb.DatabaseError:
-        traceback.print_exc()
-        print("Database Error")
         return False
     except mariadb.ProgrammingError:
-        traceback.print_exc()
-        print("Programming Error")
         return False
     except:
-        print("Error closing connection to DB!")
-        traceback.print_exc()
         return False

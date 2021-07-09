@@ -43,21 +43,24 @@ def post_tweet(request):
     except:
         traceback.print_exc()
         return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
+    # is actually user_id_list (careful with variable names for select)
     user_id = dbhelpers.run_select_statement(
         "SELECT user_id FROM user_session WHERE login_token = ?", [login_token, ])
     if user_id != None and len(user_id) != 0:
         user_id = int(user_id[0][0])
         sql = "INSERT INTO tweets(user_id, content"
+        # these params are always sent
         params = [user_id, content]
+        # img url optional
         if image_url != None:
             sql += ", image_url) VALUES(?, ?, ?)"
             params.append(image_url)
         else:
             sql += ") VALUES(?, ?)"
-        last_row_id = None
         last_row_id = dbhelpers.run_insert_statement(sql, params)
         if type(last_row_id) == Response:
             return last_row_id
+        # insert statement either will return none or response
         elif last_row_id != None:
             new_tweet = dbhelpers.run_select_statement(
                 "SELECT t.user_id, u.username, t.created_at, t.image_url, t.id, t.content FROM tweets t INNER JOIN users u ON u.id = t.user_id INNER JOIN user_session us ON us.user_id = t.user_id WHERE us.login_token = ? AND t.id = ?", [login_token, last_row_id])
@@ -69,11 +72,11 @@ def post_tweet(request):
                 tweet_json = json.dumps(tweet_dictionary, default=str)
                 return Response(tweet_json, mimetype='application/json', status=201)
             else:
-                return Response("Sorry, something went wrong", mimetype='text/plain', status=500)
+                return Response("Error fetching data", mimetype='text/plain', status=500)
         else:
             return Response("Error creating post", mimetype='text/plain', status=401)
     else:
-        return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
+        return Response("User not logged in", mimetype='text/plain', status=400)
 
 
 def edit_tweet(request):
@@ -101,9 +104,18 @@ def edit_tweet(request):
     if type(rows) == Response:
         return rows
     elif rows != None and rows == 1:
-        updated_tweet_dictionary = {"tweetId": tweet_id, "content": content}
-        udpated_tweet_json = json.dumps(updated_tweet_dictionary, default=str)
-        return Response(udpated_tweet_json, mimetype='application/json', status=200)
+        if image_url != None:
+            updated_tweet_dictionary = {
+                "tweetId": tweet_id, "content": content, "imageUrl": image_url}
+            udpated_tweet_json = json.dumps(
+                updated_tweet_dictionary, default=str)
+            return Response(udpated_tweet_json, mimetype='application/json', status=200)
+        else:
+            updated_tweet_dictionary = {
+                "tweetId": tweet_id, "content": content}
+            udpated_tweet_json = json.dumps(
+                updated_tweet_dictionary, default=str)
+            return Response(udpated_tweet_json, mimetype='application/json', status=200)
     else:
         return Response("Error updating post", mimetype='text/plain', status=500)
 
@@ -118,6 +130,7 @@ def delete_tweet(request):
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     rows = dbhelpers.run_delete_statement(
         "DELETE t FROM tweets t INNER JOIN user_session us ON t.user_id = us.user_id WHERE t.id = ? AND us.login_token = ?", [tweet_id, login_token])
     if type(rows) == Response:
@@ -137,7 +150,7 @@ def following_tweets(request):
         return Response("Please enter the required data", mimetype='text/plain', status=401)
     except:
         traceback.print_exc()
-    following_tweets = None
+        return Response("Sorry, something went wrong", mimetype='text/plain', status=400)
     following_tweets = dbhelpers.run_select_statement(
         "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM user_follows uf INNER JOIN user_session us ON us.user_id = uf.user_id INNER JOIN tweets t ON t.user_id = uf.follow_id INNER JOIN users u ON u.id = t.user_id WHERE us.login_token = ? ORDER BY t.created_at DESC LIMIT 100", [login_token])
     if type(following_tweets) == Response:
