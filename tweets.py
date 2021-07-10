@@ -70,8 +70,8 @@ def post_tweet(request):
             if type(new_tweet) == Response:
                 return new_tweet
             if new_tweet != None and len(new_tweet) == 1:
-                tweet_dictionary = {"tweetId": new_tweet[0][4], "userId": new_tweet[0][0], "username": new_tweet[0][1],
-                                    "content": new_tweet[0][5], "createdAt": new_tweet[0][2], "imageUrl": new_tweet[0][3]}
+                tweet_dictionary = {"tweetId": new_tweet[0][0], "userId": new_tweet[0][0], "username": new_tweet[0][1],
+                                    "content": new_tweet[0][2], "createdAt": new_tweet[0][3], "tweetImageUrl": new_tweet[0][4], "userImageUrl": new_tweet[0][5]}
                 tweet_json = json.dumps(tweet_dictionary, default=str)
                 return Response(tweet_json, mimetype='application/json', status=201)
             else:
