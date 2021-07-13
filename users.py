@@ -94,6 +94,7 @@ def create_user(request):
 
 
 def update_user(request):
+    salt = None
     try:
         # all .get b/c optional
         email = request.json.get('email')

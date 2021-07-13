@@ -63,8 +63,6 @@ def post_tweet(request):
             return last_row_id
         # insert statement either will return none or response
         elif last_row_id != None:
-            print(last_row_id)
-            print(login_token)
             new_tweet = dbhelpers.run_select_statement(
                 "SELECT t.id, u.username, t.content, t.created_at, t.image_url, u.image_url, t.user_id FROM tweets t INNER JOIN users u ON u.id = t.user_id INNER JOIN user_session us ON us.user_id = t.user_id WHERE us.login_token = ? AND t.id = ?", [login_token, last_row_id])
             if type(new_tweet) == Response:
