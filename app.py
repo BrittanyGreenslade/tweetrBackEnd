@@ -60,7 +60,7 @@ def edit_tweet():
     return tweets.edit_tweet(request)
 
 
-@app.get("/api/followingTweets")
+@app.get("/api/following-tweets")
 def following_tweets():
     return tweets.following_tweets(request)
 

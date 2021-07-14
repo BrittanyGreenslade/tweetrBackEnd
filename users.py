@@ -4,7 +4,6 @@ import dbhelpers
 import traceback
 import json
 import helpers
-import hashlib
 import secrets
 
 
@@ -147,7 +146,7 @@ def update_user(request):
             sql += " u.image_url = ?,"
             params.append(image_url)
         if salt != None and salt != "":
-            sql += "u.salt = ?,"
+            sql += " u.salt = ?,"
             params.append(salt)
         # removes the last character (comma) from the SQL statement of
         # last thing concatenated
