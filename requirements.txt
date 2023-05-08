@@ -22,7 +22,7 @@ Flask==2.0.1
 Flask-Cors==3.0.10
 itsdangerous==2.0.1
 Jinja2==3.0.1
-mariadb==1.0.7
+mariadb==10.6.12
 MarkupSafe==2.0.1
 packaging==23.1
 pycodestyle==2.7.0
